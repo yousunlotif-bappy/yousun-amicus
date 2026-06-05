@@ -16,6 +16,7 @@ import { notFound } from "next/navigation";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { formatBDT, getApplicationById } from "@/data/applications";
+import { runAmicusAnalysis } from "@/lib/agent-calculations";
 
 type PageProps = {
   params: Promise<{
@@ -31,21 +32,20 @@ export default async function ApplicationDetailPage({ params }: PageProps) {
     notFound();
   }
 
+  /*
+    Run the full Amicus workflow for this application.
+    This gives the page real calculated outputs instead of only static UI values.
+  */
+  const analysis = runAmicusAnalysis(application);
+
   return (
     <AuthGuard>
       <main className="min-h-screen overflow-x-hidden bg-[#F8FAFC]">
-        {/* 
-          Fixed sidebar.
-          This keeps navigation consistent with the rest of the protected dashboard pages.
-        */}
+        {/* Fixed sidebar keeps navigation consistent across protected pages */}
         <Sidebar />
 
-        {/* 
-          Main application detail area.
-          Sidebar width is 230px, so the content starts after 230px.
-        */}
         <section className="ml-[230px] max-w-[calc(100vw-230px)] px-7 py-7">
-          {/* Back link */}
+          {/* Back navigation */}
           <Link
             href="/applications"
             className="mb-6 inline-flex items-center gap-2 text-sm font-bold text-[#0E9F9A]"
@@ -54,7 +54,7 @@ export default async function ApplicationDetailPage({ params }: PageProps) {
             Back to Applications
           </Link>
 
-          {/* Page header */}
+          {/* Application header */}
           <div className="flex flex-wrap items-start justify-between gap-5">
             <div>
               <div className="flex flex-wrap items-center gap-3">
@@ -63,7 +63,7 @@ export default async function ApplicationDetailPage({ params }: PageProps) {
                 </h1>
 
                 <span className="rounded-full bg-[#FFF7E8] px-4 py-2 text-xs font-bold text-[#C9961A]">
-                  {application.status}
+                  Agent Analysis Ready
                 </span>
               </div>
 
@@ -81,31 +81,32 @@ export default async function ApplicationDetailPage({ params }: PageProps) {
             </button>
           </div>
 
-          {/* Important loan numbers */}
+          {/* Key loan decision numbers */}
           <div className="mt-8 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
             <InfoCard
               title="Requested Loan"
-              value={formatBDT(application.requestedLoan)}
+              value={formatBDT(analysis.recommendation.requestedLoan)}
             />
 
             <InfoCard
-              title="Recommended Loan"
-              value={formatBDT(application.recommendedLoan)}
+              title="Safe Loan"
+              value={formatBDT(analysis.recommendation.safeLoan)}
               teal
             />
 
             <InfoCard
-              title="Average Sales"
-              value={formatBDT(application.averageMonthlySales)}
+              title="Risky Zone"
+              value={`Above ${formatBDT(analysis.recommendation.riskyZone)}`}
+              gold
             />
 
             <InfoCard
-              title="Existing EMI"
-              value={formatBDT(application.existingEmi)}
+              title="Optimal EMI"
+              value={formatBDT(analysis.dynamicEmi.normalMonthEmi)}
             />
           </div>
 
-          {/* Applicant profile and financial twin */}
+          {/* Applicant profile and Financial Twin result */}
           <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-3">
             <div className="rounded-2xl border border-[#E5EAF0] bg-white p-6 shadow-sm xl:col-span-2">
               <SectionTitle title="Applicant Profile" />
@@ -123,7 +124,10 @@ export default async function ApplicationDetailPage({ params }: PageProps) {
                   value={application.productType}
                 />
 
-                <ProfileRow label="Risk Level" value={application.riskLevel} />
+                <ProfileRow
+                  label="Risk Level"
+                  value={analysis.recommendation.riskLevel}
+                />
 
                 <ProfileRow
                   label="Seasonality"
@@ -132,7 +136,7 @@ export default async function ApplicationDetailPage({ params }: PageProps) {
                 />
               </div>
 
-              {/* Short AI insight preview */}
+              {/* Short AI-style explanation from the analysis engine */}
               <div className="mt-6 rounded-2xl border border-[#F0E3C4] bg-[#FFFDF8] p-5">
                 <div className="flex gap-3">
                   <Sparkles className="mt-1 h-5 w-5 shrink-0 text-[#C9961A]" />
@@ -143,58 +147,52 @@ export default async function ApplicationDetailPage({ params }: PageProps) {
                     </p>
 
                     <p className="mt-2 text-sm leading-6 text-[#667085]">
-                      This applicant shows stable but seasonal cashflow. The
-                      requested amount may create pressure during low-sales
-                      months. A smaller working capital bridge with dynamic EMI
-                      is safer.
+                      {analysis.financialTwin.explanation}
                     </p>
                   </div>
                 </div>
               </div>
             </div>
 
-            <FinancialTwinPanel score={application.twinScore} />
+            <FinancialTwinPanel
+              score={analysis.financialTwin.score}
+              grade={analysis.financialTwin.grade}
+              cashflowRhythm={analysis.financialTwin.cashflowRhythm}
+              debtStress={analysis.financialTwin.debtStress}
+              emergencyBuffer={analysis.financialTwin.emergencyBuffer}
+            />
           </div>
 
-          {/* AI decision support panels */}
+          {/* Main agent decision-support panels */}
           <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-3">
-            <FutureMirrorPanel />
+            <FutureMirrorPanel scenarios={analysis.futureMirror} />
 
             <RecommendationPanel
-              requested={application.requestedLoan}
-              recommended={application.recommendedLoan}
+              requested={analysis.recommendation.requestedLoan}
+              recommended={analysis.recommendation.safeLoan}
+              riskyZone={analysis.recommendation.riskyZone}
+              reason={analysis.recommendation.reason}
             />
 
-            <ReportPanel />
+            <EmiPanel
+              normal={analysis.dynamicEmi.normalMonthEmi}
+              high={analysis.dynamicEmi.highSeasonEmi}
+              low={analysis.dynamicEmi.lowSeasonEmi}
+              affordability={analysis.dynamicEmi.affordability}
+            />
           </div>
 
-          {/* Rescue before default preview */}
-          <div className="mt-6 rounded-2xl border border-[#E4B14B] bg-[#FFFDF8] p-6 shadow-sm">
-            <div className="flex flex-wrap items-center justify-between gap-5">
-              <div className="flex items-center gap-5">
-                <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-[#F8E9C8]">
-                  <ShieldCheck className="h-8 w-8 text-[#C9961A]" />
-                </div>
+          {/* Reports and Rescue Before Default */}
+          <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-2">
+            <ReportPanel />
 
-                <div>
-                  <h2 className="text-xl font-bold text-[#0B2341]">
-                    Rescue Before Default Preview
-                  </h2>
-
-                  <p className="mt-1 text-sm text-[#667085]">
-                    If sales drop by 35% and EMI is delayed twice, Amicus will
-                    recommend a 4-month lower EMI support plan.
-                  </p>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                className="rounded-xl border border-[#C9961A] px-6 py-3 text-sm font-bold text-[#C9961A] transition hover:bg-[#FFF4D8]"
-              >
-                Create Rescue Plan
-              </button>
-            </div>
+            <RescuePanel
+              distressLevel={analysis.rescuePlan.distressLevel}
+              signals={analysis.rescuePlan.triggerSignals}
+              bankAction={analysis.rescuePlan.bankAction}
+              avoidAction={analysis.rescuePlan.avoidAction}
+              recoveryProbability={analysis.rescuePlan.recoveryProbability}
+            />
           </div>
         </section>
       </main>
@@ -207,7 +205,7 @@ function SectionTitle({ title }: { title: string }) {
     <div className="flex items-center gap-2">
       <h2 className="text-lg font-bold text-[#0B2341]">{title}</h2>
 
-      {/* Later, this icon can open a small helper tooltip */}
+      {/* Later, this icon can show a short tooltip for each section */}
       <Info className="h-4 w-4 text-[#98A2B3]" />
     </div>
   );
@@ -217,22 +215,24 @@ function InfoCard({
   title,
   value,
   teal = false,
+  gold = false,
 }: {
   title: string;
   value: string;
   teal?: boolean;
+  gold?: boolean;
 }) {
+  const valueColor = teal
+    ? "text-[#0E9F9A]"
+    : gold
+      ? "text-[#C9961A]"
+      : "text-[#0B2341]";
+
   return (
     <div className="rounded-2xl border border-[#E5EAF0] bg-white p-5 shadow-sm">
       <p className="text-sm font-semibold text-[#667085]">{title}</p>
 
-      <p
-        className={`mt-3 text-2xl font-bold ${
-          teal ? "text-[#0E9F9A]" : "text-[#0B2341]"
-        }`}
-      >
-        {value}
-      </p>
+      <p className={`mt-3 text-2xl font-bold ${valueColor}`}>{value}</p>
     </div>
   );
 }
@@ -261,7 +261,19 @@ function ProfileRow({
   );
 }
 
-function FinancialTwinPanel({ score }: { score: number }) {
+function FinancialTwinPanel({
+  score,
+  grade,
+  cashflowRhythm,
+  debtStress,
+  emergencyBuffer,
+}: {
+  score: number;
+  grade: string;
+  cashflowRhythm: string;
+  debtStress: string;
+  emergencyBuffer: string;
+}) {
   return (
     <div className="rounded-2xl border border-[#E5EAF0] bg-white p-6 shadow-sm">
       <SectionTitle title="Financial Twin DNA" />
@@ -274,16 +286,15 @@ function FinancialTwinPanel({ score }: { score: number }) {
             <span className="text-sm text-[#667085]">/ 900</span>
 
             <span className="mt-1 text-sm font-bold text-[#0E9F9A]">
-              Good
+              {grade}
             </span>
           </div>
         </div>
 
-        {/* Financial Twin breakdown */}
         <div className="mt-6 w-full space-y-3">
-          <ScoreItem label="Cashflow Rhythm" value="Seasonal but stable" />
-          <ScoreItem label="Debt Stress" value="Medium" />
-          <ScoreItem label="Emergency Buffer" value="Weak" />
+          <ScoreItem label="Cashflow Rhythm" value={cashflowRhythm} />
+          <ScoreItem label="Debt Stress" value={debtStress} />
+          <ScoreItem label="Emergency Buffer" value={emergencyBuffer} />
         </div>
       </div>
     </div>
@@ -294,41 +305,53 @@ function ScoreItem({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between border-b border-[#EEF2F6] pb-3 last:border-0">
       <span className="text-sm text-[#667085]">{label}</span>
-
       <span className="text-sm font-bold text-[#0B2341]">{value}</span>
     </div>
   );
 }
 
-function FutureMirrorPanel() {
+function FutureMirrorPanel({
+  scenarios,
+}: {
+  scenarios: {
+    name: string;
+    description: string;
+    riskLevel: string;
+    projectedDefaultRisk: number;
+    impact: string;
+  }[];
+}) {
   return (
     <div className="rounded-2xl border border-[#E5EAF0] bg-white p-6 shadow-sm">
       <SectionTitle title="Future Mirror" />
 
       <div className="mt-6 space-y-4">
-        <Scenario
-          icon={CheckCircle2}
-          title="Normal Scenario"
-          subtitle="Manageable with safeguards"
-          value="Stable"
-          color="#0E9F9A"
-        />
+        {scenarios.map((scenario, index) => {
+          const color =
+            scenario.riskLevel === "High"
+              ? "#E5484D"
+              : scenario.riskLevel === "Medium"
+                ? "#C9961A"
+                : "#0E9F9A";
 
-        <Scenario
-          icon={TrendingDown}
-          title="Sales Down 25%"
-          subtitle="High EMI pressure"
-          value="Risky"
-          color="#E5484D"
-        />
+          const icon =
+            index === 2
+              ? TrendingDown
+              : index === 1
+                ? ShieldCheck
+                : CheckCircle2;
 
-        <Scenario
-          icon={ShieldCheck}
-          title="Safe Scenario"
-          subtitle="BDT 9 lakh + dynamic EMI"
-          value="Best"
-          color="#0B2341"
-        />
+          return (
+            <Scenario
+              key={scenario.name}
+              icon={icon}
+              title={scenario.name}
+              subtitle={scenario.description}
+              value={`${scenario.projectedDefaultRisk}%`}
+              color={color}
+            />
+          );
+        })}
       </div>
     </div>
   );
@@ -359,7 +382,7 @@ function Scenario({
 
         <div>
           <p className="text-sm font-bold text-[#0B2341]">{title}</p>
-          <p className="text-xs text-[#667085]">{subtitle}</p>
+          <p className="max-w-[210px] text-xs text-[#667085]">{subtitle}</p>
         </div>
       </div>
 
@@ -373,9 +396,13 @@ function Scenario({
 function RecommendationPanel({
   requested,
   recommended,
+  riskyZone,
+  reason,
 }: {
   requested: number;
   recommended: number;
+  riskyZone: number;
+  reason: string;
 }) {
   return (
     <div className="rounded-2xl border border-[#E5EAF0] bg-white p-6 shadow-sm">
@@ -390,7 +417,7 @@ function RecommendationPanel({
               <p className="text-sm font-bold text-red-600">Risky Zone</p>
 
               <p className="text-sm text-[#667085]">
-                Full request {formatBDT(requested)} may create pressure.
+                Above {formatBDT(riskyZone)} may create pressure.
               </p>
             </div>
           </div>
@@ -406,19 +433,56 @@ function RecommendationPanel({
               </p>
 
               <p className="text-sm text-[#667085]">
-                Approve {formatBDT(recommended)} with dynamic EMI.
+                Approve {formatBDT(recommended)}, not {formatBDT(requested)}.
               </p>
             </div>
           </div>
         </div>
 
-        <button
-          type="button"
-          className="w-full rounded-xl bg-[#0B2341] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#071A2F]"
-        >
-          Generate Recommendation
-        </button>
+        <p className="text-sm leading-6 text-[#667085]">{reason}</p>
       </div>
+    </div>
+  );
+}
+
+function EmiPanel({
+  normal,
+  high,
+  low,
+  affordability,
+}: {
+  normal: number;
+  high: number;
+  low: number;
+  affordability: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-[#E5EAF0] bg-white p-6 shadow-sm">
+      <SectionTitle title="Dynamic EMI Plan" />
+
+      <div className="mt-6 space-y-4">
+        <EmiRow label="Normal Month EMI" value={formatBDT(normal)} />
+        <EmiRow label="High Season EMI" value={formatBDT(high)} />
+        <EmiRow label="Low Season EMI" value={formatBDT(low)} />
+      </div>
+
+      <div className="mt-6 rounded-xl bg-[#E8F7F5] p-4">
+        <p className="text-sm font-bold text-[#0B2341]">Affordability</p>
+
+        <p className="mt-1 text-2xl font-bold text-[#0E9F9A]">
+          {affordability}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function EmiRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between border-b border-[#EEF2F6] pb-3 last:border-0">
+      <span className="text-sm text-[#667085]">{label}</span>
+
+      <span className="text-sm font-bold text-[#0B2341]">{value}</span>
     </div>
   );
 }
@@ -450,6 +514,74 @@ function ReportPanel() {
             <BarChart3 className="h-4 w-4 text-[#667085]" />
           </button>
         ))}
+      </div>
+    </div>
+  );
+}
+
+function RescuePanel({
+  distressLevel,
+  signals,
+  bankAction,
+  avoidAction,
+  recoveryProbability,
+}: {
+  distressLevel: string;
+  signals: string[];
+  bankAction: string;
+  avoidAction: string;
+  recoveryProbability: number;
+}) {
+  return (
+    <div className="rounded-2xl border border-[#E4B14B] bg-[#FFFDF8] p-6 shadow-sm">
+      <SectionTitle title="Rescue Before Default" />
+
+      <div className="mt-5 grid grid-cols-1 gap-5 md:grid-cols-2">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-wide text-[#667085]">
+            Distress Level
+          </p>
+
+          <p className="mt-1 text-2xl font-bold text-[#C9961A]">
+            {distressLevel}
+          </p>
+
+          <div className="mt-5">
+            <p className="text-xs font-bold uppercase tracking-wide text-[#667085]">
+              Trigger Signals
+            </p>
+
+            <ul className="mt-2 space-y-2">
+              {signals.map((signal) => (
+                <li key={signal} className="text-sm text-[#0B2341]">
+                  • {signal}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        <div>
+          <p className="text-xs font-bold uppercase tracking-wide text-[#667085]">
+            Recommended Bank Action
+          </p>
+
+          <p className="mt-2 text-sm leading-6 text-[#0B2341]">{bankAction}</p>
+
+          <p className="mt-4 text-xs font-bold uppercase tracking-wide text-[#667085]">
+            Avoid Action
+          </p>
+
+          <p className="mt-2 text-sm leading-6 text-[#0B2341]">{avoidAction}</p>
+
+          <p className="mt-4 text-xs font-bold uppercase tracking-wide text-[#667085]">
+            Recovery Probability
+          </p>
+
+          <p className="mt-1 text-2xl font-bold text-[#0E9F9A]">
+            {recoveryProbability}%
+          </p>
+        </div>
       </div>
     </div>
   );
