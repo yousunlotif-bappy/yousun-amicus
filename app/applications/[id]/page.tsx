@@ -16,6 +16,7 @@ import { notFound } from "next/navigation";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { formatBDT, getApplicationById } from "@/data/applications";
+import { getReportsByApplicationId } from "@/data/reports";
 import { runAmicusAnalysis } from "@/lib/agent-calculations";
 
 type PageProps = {
@@ -28,27 +29,37 @@ export default async function ApplicationDetailPage({ params }: PageProps) {
   const { id } = await params;
   const application = getApplicationById(id);
 
+  /*
+    If someone opens an application ID that does not exist,
+    we show the proper Next.js not-found page instead of breaking the app.
+  */
   if (!application) {
     notFound();
   }
 
   /*
-    Run the full Amicus workflow for this application.
-    This gives the page real calculated outputs instead of only static UI values.
+    Run the full Amicus analysis for this application.
+    This gives us Financial Twin, Future Mirror, Safe Loan, EMI, and Rescue Plan.
   */
   const analysis = runAmicusAnalysis(application);
+
+  /*
+    Pull all generated reports connected to this application.
+    These will be shown inside the Report Center card.
+  */
+  const reports = getReportsByApplicationId(application.id);
 
   return (
     <AuthGuard>
       <main className="min-h-screen overflow-x-hidden bg-[#F8FAFC]">
-        {/* Fixed sidebar keeps navigation consistent across protected pages */}
+        {/* Fixed sidebar keeps navigation consistent across dashboard pages */}
         <Sidebar />
 
         <section className="ml-[230px] max-w-[calc(100vw-230px)] px-7 py-7">
           {/* Back navigation */}
           <Link
             href="/applications"
-            className="mb-6 inline-flex items-center gap-2 text-sm font-bold text-[#0E9F9A]"
+            className="mb-6 inline-flex items-center gap-2 text-sm font-bold text-[#0E9F9A] transition hover:text-[#087C78]"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to Applications
@@ -81,7 +92,7 @@ export default async function ApplicationDetailPage({ params }: PageProps) {
             </button>
           </div>
 
-          {/* Key loan decision numbers */}
+          {/* Key decision numbers */}
           <div className="mt-8 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
             <InfoCard
               title="Requested Loan"
@@ -136,7 +147,7 @@ export default async function ApplicationDetailPage({ params }: PageProps) {
                 />
               </div>
 
-              {/* Short AI-style explanation from the analysis engine */}
+              {/* Amicus explanation from the analysis engine */}
               <div className="mt-6 rounded-2xl border border-[#F0E3C4] bg-[#FFFDF8] p-5">
                 <div className="flex gap-3">
                   <Sparkles className="mt-1 h-5 w-5 shrink-0 text-[#C9961A]" />
@@ -163,7 +174,7 @@ export default async function ApplicationDetailPage({ params }: PageProps) {
             />
           </div>
 
-          {/* Main agent decision-support panels */}
+          {/* Main decision-support panels */}
           <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-3">
             <FutureMirrorPanel scenarios={analysis.futureMirror} />
 
@@ -184,7 +195,7 @@ export default async function ApplicationDetailPage({ params }: PageProps) {
 
           {/* Reports and Rescue Before Default */}
           <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-2">
-            <ReportPanel />
+            <ReportPanel reports={reports} />
 
             <RescuePanel
               distressLevel={analysis.rescuePlan.distressLevel}
@@ -205,7 +216,7 @@ function SectionTitle({ title }: { title: string }) {
     <div className="flex items-center gap-2">
       <h2 className="text-lg font-bold text-[#0B2341]">{title}</h2>
 
-      {/* Later, this icon can show a short tooltip for each section */}
+      {/* Later this icon can open a small tooltip for extra explanation */}
       <Info className="h-4 w-4 text-[#98A2B3]" />
     </div>
   );
@@ -487,33 +498,59 @@ function EmiRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-function ReportPanel() {
-  const reports = ["Bank Officer Memo", "Customer Summary", "Rescue Report"];
-
+function ReportPanel({
+  reports,
+}: {
+  reports: {
+    id: string;
+    title: string;
+    type: string;
+    audience: string;
+  }[];
+}) {
   return (
     <div className="rounded-2xl border border-[#E5EAF0] bg-white p-6 shadow-sm">
       <SectionTitle title="Report Center" />
 
       <div className="mt-6 space-y-4">
-        {reports.map((report) => (
-          <button
-            key={report}
-            type="button"
-            className="flex w-full items-center justify-between rounded-xl border border-[#E5EAF0] p-4 text-left transition hover:border-[#0E9F9A]"
-          >
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#E8F7F5]">
-                <FileText className="h-5 w-5 text-[#0E9F9A]" />
+        {reports.length > 0 ? (
+          reports.map((report) => (
+            <Link
+              href={`/reports/${report.id}`}
+              key={report.id}
+              className="flex w-full items-center justify-between rounded-xl border border-[#E5EAF0] p-4 text-left transition hover:border-[#0E9F9A]"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#E8F7F5]">
+                  <FileText className="h-5 w-5 text-[#0E9F9A]" />
+                </div>
+
+                <div>
+                  <span className="block text-sm font-bold text-[#0B2341]">
+                    {report.title}
+                  </span>
+
+                  <span className="text-xs text-[#667085]">
+                    {report.audience}
+                  </span>
+                </div>
               </div>
 
-              <span className="text-sm font-bold text-[#0B2341]">
-                {report}
-              </span>
-            </div>
+              <BarChart3 className="h-4 w-4 text-[#667085]" />
+            </Link>
+          ))
+        ) : (
+          <div className="rounded-xl border border-dashed border-[#D9E0EA] p-4">
+            <p className="text-sm font-semibold text-[#0B2341]">
+              No reports generated yet
+            </p>
 
-            <BarChart3 className="h-4 w-4 text-[#667085]" />
-          </button>
-        ))}
+            <p className="mt-1 text-xs leading-5 text-[#667085]">
+              Reports will appear here after the Amicus report generator runs
+              for this application.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -586,5 +623,6 @@ function RescuePanel({
     </div>
   );
 }
+
 
 
