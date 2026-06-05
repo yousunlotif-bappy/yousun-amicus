@@ -18,8 +18,13 @@
         "name": "next"
       }
     ],
+
+    /*
+      This is the important fix.
+      Now "@/components/..." will correctly look inside "src/components/...".
+    */
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./src/*"]
     }
   },
   "include": [
@@ -27,8 +32,8 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts",
-    "**/*.mts"
+    ".next/dev/types/**/*.ts"
   ],
   "exclude": ["node_modules"]
 }
+

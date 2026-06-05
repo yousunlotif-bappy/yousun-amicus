@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
-/* 
-  YOUSUN Amicus Global Theme
-  These CSS variables keep our colors consistent across the whole app.
-  Later, we can reuse these colors in dashboard cards, sidebar, buttons, and reports.
+/*
+  Global color system for YOUSUN Amicus.
+  Keeping these colors in one place makes the UI easier to maintain.
+  We will reuse them later for the sidebar, dashboard cards, reports, and buttons.
 */
 :root {
   --background: #f8fafc;
@@ -20,30 +20,38 @@
   --text-dark: #0b1830;
 }
 
-/* 
-  Makes width and height easier to control.
-  This helps avoid unwanted layout overflow issues.
+/*
+  This keeps layout sizing predictable.
+  Padding and border will stay inside the actual element width.
 */
 * {
   box-sizing: border-box;
 }
 
-/* 
-  Smooth scrolling gives the app a more polished feeling
-  when we move between sections.
+/*
+  Smooth scrolling gives the app a slightly more polished feel.
 */
 html {
   scroll-behavior: smooth;
 }
 
-/* 
-  Main body style for the whole application.
-  The background is light and clean to match a modern banking dashboard.
+/*
+  Main app background and default text style.
+  The goal is a clean, calm, banking-dashboard look.
 */
 body {
   margin: 0;
   background: var(--background);
   color: var(--text-dark);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/*
+  Buttons and inputs should use the same font as the rest of the app.
+  This keeps the UI consistent across forms and actions.
+*/
+button,
+input {
+  font-family: inherit;
 }
 
