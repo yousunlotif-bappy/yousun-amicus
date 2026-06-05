@@ -55,3 +55,26 @@ input {
   font-family: inherit;
 }
 
+/*
+  Print mode polish for report pages.
+  When users print a report, we hide navigation and action buttons
+  so the final output looks like a clean document instead of a dashboard screen.
+*/
+@media print {
+  aside,
+  button,
+  a {
+    display: none !important;
+  }
+
+  body {
+    background: white !important;
+  }
+
+  #report-content {
+    border: none !important;
+    box-shadow: none !important;
+  }
+}
+
+

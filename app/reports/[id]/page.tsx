@@ -1,15 +1,10 @@
-import {
-  ArrowLeft,
-  Download,
-  FileText,
-  Printer,
-  ShieldCheck,
-} from "lucide-react";
+import { ArrowLeft, FileText, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { Sidebar } from "@/components/layout/Sidebar";
+import { ReportActions } from "@/components/reports/ReportActions";
 import { getReportContext } from "@/data/reports";
 
 type PageProps = {
@@ -23,8 +18,8 @@ export default async function ReportDetailPage({ params }: PageProps) {
   const context = getReportContext(id);
 
   /*
-    If the report ID does not exist, show Next.js not-found page.
-    This keeps broken report links from crashing the app.
+    If someone opens a report ID that does not exist,
+    we show the proper Next.js not-found page instead of breaking the app.
   */
   if (!context) {
     notFound();
@@ -35,15 +30,15 @@ export default async function ReportDetailPage({ params }: PageProps) {
   return (
     <AuthGuard>
       <main className="min-h-screen overflow-x-hidden bg-[#F8FAFC]">
-        {/* Fixed sidebar for protected dashboard pages */}
+        {/* Fixed sidebar for all protected dashboard pages */}
         <Sidebar />
 
         {/* 
-          Main report detail content.
+          Main report detail area.
           Sidebar width is 230px, so the content starts after that space.
         */}
         <section className="ml-[230px] max-w-[calc(100vw-230px)] px-7 py-7">
-          {/* Back link */}
+          {/* Back navigation */}
           <Link
             href="/reports"
             className="mb-6 inline-flex items-center gap-2 text-sm font-bold text-[#0E9F9A] transition hover:text-[#087C78]"
@@ -52,7 +47,7 @@ export default async function ReportDetailPage({ params }: PageProps) {
             Back to Reports
           </Link>
 
-          {/* Page header and actions */}
+          {/* Page header */}
           <div className="flex flex-wrap items-start justify-between gap-5">
             <div>
               <div className="flex flex-wrap items-center gap-3">
@@ -71,33 +66,21 @@ export default async function ReportDetailPage({ params }: PageProps) {
               </p>
             </div>
 
-            {/* 
-              Report actions.
-              Print/PDF are visual for now. Later, we can connect them with real export logic.
-            */}
-            <div className="flex flex-wrap gap-3">
-              <button
-                type="button"
-                className="flex items-center gap-2 rounded-xl border border-[#E5EAF0] bg-white px-5 py-3 text-sm font-bold text-[#0B2341] shadow-sm transition hover:bg-[#F8FAFC]"
-              >
-                <Printer className="h-4 w-4" />
-                Print
-              </button>
-
-              <button
-                type="button"
-                className="flex items-center gap-2 rounded-xl bg-[#0B2341] px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#071A2F]"
-              >
-                <Download className="h-4 w-4" />
-                Download PDF Soon
-              </button>
-            </div>
+            {/* Print and PDF download actions live inside a client component */}
+            <ReportActions reportId={report.id} reportTitle={report.title} />
           </div>
 
           <div className="mt-8 grid grid-cols-1 gap-6 xl:grid-cols-[1fr_320px]">
-            {/* Main report document */}
-            <article className="rounded-2xl border border-[#E5EAF0] bg-white p-8 shadow-sm">
-              {/* Report header inside the document */}
+            {/* 
+              Main report document.
+              The id="report-content" is important because ReportActions uses it
+              to capture this exact area for PDF generation.
+            */}
+            <article
+              id="report-content"
+              className="rounded-2xl border border-[#E5EAF0] bg-white p-8 shadow-sm"
+            >
+              {/* Report document header */}
               <div className="border-b border-[#E5EAF0] pb-6">
                 <div className="flex items-center gap-4">
                   <img
@@ -126,7 +109,7 @@ export default async function ReportDetailPage({ params }: PageProps) {
                 </p>
               </div>
 
-              {/* Report sections */}
+              {/* Report body sections */}
               <div className="mt-8 space-y-8">
                 {report.sections.map((section) => (
                   <section key={section.heading}>
@@ -170,7 +153,7 @@ export default async function ReportDetailPage({ params }: PageProps) {
               </div>
             </article>
 
-            {/* Right side metadata panel */}
+            {/* Right metadata panel */}
             <aside className="space-y-5">
               <div className="rounded-2xl border border-[#E5EAF0] bg-white p-6 shadow-sm">
                 <h3 className="text-lg font-bold text-[#0B2341]">
@@ -179,11 +162,14 @@ export default async function ReportDetailPage({ params }: PageProps) {
 
                 <div className="mt-5 space-y-4">
                   <MetaItem label="Report ID" value={report.id} />
+
                   <MetaItem
                     label="Application ID"
                     value={report.applicationId}
                   />
+
                   <MetaItem label="Audience" value={report.audience} />
+
                   <MetaItem label="Date" value={report.generatedAt} />
                 </div>
               </div>
@@ -201,7 +187,7 @@ export default async function ReportDetailPage({ params }: PageProps) {
                 </div>
               </div>
 
-              {/* Quick link back to the related loan application */}
+              {/* Quick link back to the related application */}
               <Link
                 href={`/applications/${application.id}`}
                 className="flex items-center justify-center gap-2 rounded-xl bg-[#0E9F9A] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#087C78]"
