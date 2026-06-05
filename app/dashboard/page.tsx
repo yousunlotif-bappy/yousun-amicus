@@ -12,72 +12,78 @@ import {
   TrendingUp,
 } from "lucide-react";
 
+import { AuthGuard } from "@/components/auth/AuthGuard";
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Topbar } from "@/components/layout/Topbar";
 
 export default function DashboardPage() {
   return (
-    <main className="min-h-screen bg-[#F8FAFC]">
-      {/* Fixed sidebar gives the app a real banking SaaS dashboard feeling */}
-      <Sidebar />
-
-      {/* Main dashboard content starts after the sidebar width */}
-      <section className="ml-[250px] px-9 py-7">
-        <Topbar />
-
+    <AuthGuard>
+      <main className="min-h-screen bg-[#F8FAFC]">
         {/* 
-          Top metric cards.
-          lg:grid-cols-4 keeps all four cards in one row on normal laptop/desktop screens.
+          Sidebar stays fixed on the left.
+          This keeps the dashboard feeling like a real banking SaaS product.
         */}
-        <div className="mt-8 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">
-          <MetricCard
-            title="Active Applications"
-            value="128"
-            change="12%"
-            icon={FileText}
-          />
+        <Sidebar />
 
-          <MetricCard
-            title="Approval Readiness"
-            value="72%"
-            change="8%"
-            icon={ShieldCheck}
-          />
+        {/* Main dashboard content starts after the sidebar width */}
+        <section className="ml-[250px] px-9 py-7">
+          <Topbar />
 
-          <MetricCard
-            title="Risk Alerts"
-            value="16"
-            change="4"
-            icon={ShieldAlert}
-            variant="navy"
-          />
+          {/* 
+            Top metric cards.
+            lg:grid-cols-4 keeps all four cards in one row on laptop/desktop screens.
+          */}
+          <div className="mt-8 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">
+            <MetricCard
+              title="Active Applications"
+              value="128"
+              change="12%"
+              icon={FileText}
+            />
 
-          <MetricCard
-            title="Reports Generated"
-            value="24"
-            change="3"
-            icon={BarChart3}
-          />
-        </div>
+            <MetricCard
+              title="Approval Readiness"
+              value="72%"
+              change="8%"
+              icon={ShieldCheck}
+            />
 
-        {/* Main analysis area */}
-        <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-3">
-          <ApplicantOverview />
-          <FinancialTwinCard />
-          <FutureMirrorCard />
-        </div>
+            <MetricCard
+              title="Risk Alerts"
+              value="16"
+              change="4"
+              icon={ShieldAlert}
+              variant="navy"
+            />
 
-        {/* Supporting dashboard cards */}
-        <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-2">
-          <DynamicEmiCard />
-          <ReportCenterCard />
-        </div>
+            <MetricCard
+              title="Reports Generated"
+              value="24"
+              change="3"
+              icon={BarChart3}
+            />
+          </div>
 
-        {/* Bottom action banner */}
-        <RescueBanner />
-      </section>
-    </main>
+          {/* Main analysis cards */}
+          <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-3">
+            <ApplicantOverview />
+            <FinancialTwinCard />
+            <FutureMirrorCard />
+          </div>
+
+          {/* Supporting dashboard cards */}
+          <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-2">
+            <DynamicEmiCard />
+            <ReportCenterCard />
+          </div>
+
+          {/* Bottom action banner */}
+          <RescueBanner />
+        </section>
+      </main>
+    </AuthGuard>
   );
 }
 
@@ -86,7 +92,7 @@ function SectionTitle({ title }: { title: string }) {
     <div className="flex items-center gap-2">
       <h2 className="text-lg font-bold text-[#0B2341]">{title}</h2>
 
-      {/* This info icon can later show a small tooltip explanation */}
+      {/* Later, this info icon can show a small tooltip for each section */}
       <Info className="h-4 w-4 text-[#98A2B3]" />
     </div>
   );
@@ -108,7 +114,7 @@ function ApplicantOverview() {
       </div>
 
       <div className="flex items-center gap-8">
-        {/* Simple CSS donut chart for a clean MVP dashboard */}
+        {/* Simple CSS donut chart for the MVP dashboard */}
         <div className="relative flex h-40 w-40 shrink-0 items-center justify-center rounded-full bg-[conic-gradient(#0B2341_0_35%,#0E9F9A_35%_72%,#D9E0EA_72%_100%)]">
           <div className="flex h-24 w-24 flex-col items-center justify-center rounded-full bg-white">
             <span className="text-3xl font-bold text-[#0B2341]">128</span>
@@ -116,7 +122,7 @@ function ApplicantOverview() {
           </div>
         </div>
 
-        {/* Application status list */}
+        {/* Application status breakdown */}
         <div className="flex-1 space-y-4">
           {applicationRows.map(([label, value, color]) => (
             <div
@@ -432,5 +438,4 @@ function RescueBanner() {
     </div>
   );
 }
-
 
