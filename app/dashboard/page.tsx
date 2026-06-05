@@ -20,20 +20,23 @@ import { Topbar } from "@/components/layout/Topbar";
 export default function DashboardPage() {
   return (
     <AuthGuard>
-      <main className="min-h-screen bg-[#F8FAFC]">
+      <main className="min-h-screen overflow-x-hidden bg-[#F8FAFC]">
         {/* 
-          Sidebar stays fixed on the left.
-          This keeps the dashboard feeling like a real banking SaaS product.
+          Fixed sidebar.
+          Sidebar width is 230px, so the main content also starts after 230px.
         */}
         <Sidebar />
 
-        {/* Main dashboard content starts after the sidebar width */}
-        <section className="ml-[250px] px-9 py-7">
+        {/* 
+          Main dashboard area.
+          max-w prevents unwanted horizontal overflow on laptop screens.
+        */}
+        <section className="ml-[230px] max-w-[calc(100vw-230px)] px-7 py-7">
           <Topbar />
 
           {/* 
             Top metric cards.
-            lg:grid-cols-4 keeps all four cards in one row on laptop/desktop screens.
+            lg:grid-cols-4 keeps all four cards in one row on normal desktop screens.
           */}
           <div className="mt-8 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">
             <MetricCard
@@ -79,7 +82,7 @@ export default function DashboardPage() {
             <ReportCenterCard />
           </div>
 
-          {/* Bottom action banner */}
+          {/* Bottom rescue action */}
           <RescueBanner />
         </section>
       </main>
@@ -92,7 +95,7 @@ function SectionTitle({ title }: { title: string }) {
     <div className="flex items-center gap-2">
       <h2 className="text-lg font-bold text-[#0B2341]">{title}</h2>
 
-      {/* Later, this info icon can show a small tooltip for each section */}
+      {/* Later, this can show a tooltip or short explanation */}
       <Info className="h-4 w-4 text-[#98A2B3]" />
     </div>
   );
@@ -114,7 +117,7 @@ function ApplicantOverview() {
       </div>
 
       <div className="flex items-center gap-8">
-        {/* Simple CSS donut chart for the MVP dashboard */}
+        {/* Lightweight CSS donut chart for the MVP dashboard */}
         <div className="relative flex h-40 w-40 shrink-0 items-center justify-center rounded-full bg-[conic-gradient(#0B2341_0_35%,#0E9F9A_35%_72%,#D9E0EA_72%_100%)]">
           <div className="flex h-24 w-24 flex-col items-center justify-center rounded-full bg-white">
             <span className="text-3xl font-bold text-[#0B2341]">128</span>
@@ -122,7 +125,7 @@ function ApplicantOverview() {
           </div>
         </div>
 
-        {/* Application status breakdown */}
+        {/* Application status list */}
         <div className="flex-1 space-y-4">
           {applicationRows.map(([label, value, color]) => (
             <div
@@ -438,4 +441,5 @@ function RescueBanner() {
     </div>
   );
 }
+
 

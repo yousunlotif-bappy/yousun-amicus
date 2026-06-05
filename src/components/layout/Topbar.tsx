@@ -17,8 +17,8 @@ export function Topbar() {
 
   useEffect(() => {
     /*
-      Read the demo user from localStorage.
-      This keeps the topbar personal after login or signup.
+      Load the demo user after the page opens in the browser.
+      We use localStorage for the MVP stage, so this must run on the client side.
     */
     const savedUser = localStorage.getItem("yousun_amicus_user");
 
@@ -28,8 +28,8 @@ export function Topbar() {
       setUser(JSON.parse(savedUser));
     } catch {
       /*
-        If the saved data is broken for any reason,
-        clear it and send the user back to login.
+        If the saved user data becomes broken, we clear it.
+        This keeps the app from crashing and sends the user back to login.
       */
       localStorage.removeItem("yousun_amicus_user");
       router.push("/login");
@@ -38,37 +38,36 @@ export function Topbar() {
 
   function handleLogout() {
     /*
-      For the MVP, logout simply removes the demo user.
-      Later, this will also call the backend logout/session API.
+      Simple MVP logout.
+      Later, this can also call a real backend logout/session endpoint.
     */
     localStorage.removeItem("yousun_amicus_user");
     router.push("/login");
   }
 
   return (
-    <header className="flex items-center justify-between gap-6">
+    <header className="flex flex-wrap items-center justify-between gap-5">
       {/* 
-        Welcome section.
-        The name comes from localStorage after login/signup.
-        If nothing is loaded yet, we keep "Bappy" as a friendly fallback.
+        Welcome text.
+        The name comes from login/signup data, with "Bappy" as a safe fallback.
       */}
-      <div className="min-w-[320px]">
-        <h1 className="whitespace-nowrap text-3xl font-bold tracking-tight text-[#0B2341]">
+      <div className="min-w-[280px]">
+        <h1 className="text-3xl font-bold tracking-tight text-[#0B2341]">
           Welcome back, {user?.name || "Bappy"}
         </h1>
 
-        <p className="mt-2 text-sm text-[#667085]">
+        <p className="mt-2 max-w-md text-sm leading-6 text-[#667085]">
           Here&apos;s what&apos;s happening across your portfolio today.
         </p>
       </div>
 
-      {/* Search, notification, profile, and logout actions */}
-      <div className="flex items-center gap-5">
-        {/* 
-          Dashboard search.
-          Hidden on smaller screens so the topbar does not feel crowded.
-        */}
-        <div className="hidden h-12 w-[430px] items-center rounded-xl border border-[#D9E0EA] bg-white px-4 shadow-sm lg:flex">
+      {/* 
+        Right side controls.
+        flex-wrap helps the topbar stay clean on smaller laptop widths.
+      */}
+      <div className="flex flex-wrap items-center justify-end gap-4">
+        {/* Search bar is hidden on smaller screens to avoid crowding the topbar */}
+        <div className="hidden h-12 w-[390px] items-center rounded-xl border border-[#D9E0EA] bg-white px-4 shadow-sm lg:flex">
           <Search className="h-5 w-5 shrink-0 text-[#0B2341]" />
 
           <input
@@ -78,19 +77,20 @@ export function Topbar() {
           />
         </div>
 
-        {/* Notification button with a small alert dot */}
+        {/* Notification button with a small gold alert dot */}
         <button
           type="button"
           aria-label="View notifications"
           className="relative rounded-full bg-white p-3 shadow-sm ring-1 ring-[#E5EAF0] transition hover:bg-[#F8FAFC]"
         >
           <Bell className="h-5 w-5 text-[#0B2341]" />
+
           <span className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-[#C9961A]" />
         </button>
 
         {/* User profile chip */}
         <div className="flex items-center gap-3 rounded-full bg-white px-3 py-2 shadow-sm ring-1 ring-[#E5EAF0]">
-          <UserCircle className="h-9 w-9 text-[#0B2341]" />
+          <UserCircle className="h-9 w-9 shrink-0 text-[#0B2341]" />
 
           <div className="hidden sm:block">
             <p className="text-sm font-semibold leading-4 text-[#0B2341]">
@@ -105,11 +105,11 @@ export function Topbar() {
           <ChevronDown className="h-4 w-4 text-[#667085]" />
         </div>
 
-        {/* Logout button */}
+        {/* Logout button shows on extra-wide screens to keep medium screens uncluttered */}
         <button
           type="button"
           onClick={handleLogout}
-          className="hidden items-center gap-2 rounded-xl border border-[#E5EAF0] bg-white px-4 py-3 text-sm font-semibold text-[#0B2341] shadow-sm transition hover:bg-[#F8FAFC] xl:flex"
+          className="hidden items-center gap-2 rounded-xl border border-[#E5EAF0] bg-white px-4 py-3 text-sm font-semibold text-[#0B2341] shadow-sm transition hover:bg-[#F8FAFC] 2xl:flex"
         >
           <LogOut className="h-4 w-4" />
           Logout

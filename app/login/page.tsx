@@ -9,8 +9,8 @@ export default function LoginPage() {
   const router = useRouter();
 
   /*
-    Demo credentials are pre-filled so judges can quickly enter the dashboard.
-    Later, this will be replaced with a real backend login system.
+    Demo credentials are pre-filled so the hackathon demo stays smooth.
+    Later, this part will be replaced with a real backend authentication system.
   */
   const [email, setEmail] = useState("bappy@amicus.ai");
   const [password, setPassword] = useState("demo123");
@@ -22,20 +22,22 @@ export default function LoginPage() {
     setErrorMessage("");
 
     /*
-      Simple MVP authentication.
-      This is enough for the demo stage, but not for production.
+      Simple MVP login check.
+      This is only for demo purposes, not production security.
     */
     const validEmail = "bappy@amicus.ai";
     const validPassword = "demo123";
 
     if (email.trim() !== validEmail || password !== validPassword) {
-      setErrorMessage("Invalid email or password. Please use the demo credentials.");
+      setErrorMessage(
+        "Invalid email or password. Please use the demo credentials."
+      );
       return;
     }
 
     /*
-      Save a demo user in localStorage.
-      AuthGuard will use this data to allow dashboard access.
+      Save the demo user locally.
+      The AuthGuard and Topbar will use this saved user data.
     */
     const demoUser = {
       name: "Bappy",
@@ -45,7 +47,6 @@ export default function LoginPage() {
     };
 
     localStorage.setItem("yousun_amicus_user", JSON.stringify(demoUser));
-
     router.push("/dashboard");
   }
 
@@ -54,24 +55,40 @@ export default function LoginPage() {
       <div className="mx-auto grid min-h-[calc(100vh-64px)] max-w-6xl grid-cols-1 overflow-hidden rounded-3xl border border-[#E5EAF0] bg-white shadow-sm lg:grid-cols-2">
         {/* 
           Left brand panel.
-          This side explains the product story before the user logs in.
+          This side explains what YOUSUN Amicus does before the user logs in.
         */}
         <section className="flex flex-col justify-between bg-white p-10">
           <div>
-            <img
-              src="/logo.png"
-              alt="YOUSUN Amicus Logo"
-              className="h-32 w-auto"
-            />
+            {/* 
+              Brand block.
+              Logo + project name makes the login screen feel more polished and complete.
+            */}
+            <div>
+              <img
+                src="/logo.png"
+                alt="YOUSUN Amicus Logo"
+                className="h-28 w-auto"
+              />
+
+              <h1 className="mt-4 text-2xl font-bold tracking-tight text-[#0B2341]">
+                YOUSUN <span className="text-[#0E9F9A]">Amicus</span>
+              </h1>
+
+              <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#667085]">
+                AI Agent for Fair Banking
+              </p>
+
+              <div className="mt-3 h-[2px] w-16 bg-[#C9961A]" />
+            </div>
 
             <div className="mt-14">
               <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#0E9F9A]">
                 Secure Bank Agent Platform
               </p>
 
-              <h1 className="mt-5 max-w-md text-4xl font-bold leading-tight text-[#0B2341]">
+              <h2 className="mt-5 max-w-md text-4xl font-bold leading-tight text-[#0B2341]">
                 Simulate before lending. Rescue before default.
-              </h1>
+              </h2>
 
               <p className="mt-5 max-w-md text-base leading-7 text-[#667085]">
                 YOUSUN Amicus helps bank officers review loan applications,
@@ -81,7 +98,7 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Demo login helper for quick testing */}
+          {/* Demo login helper for judges and quick testing */}
           <div className="rounded-2xl border border-[#F0E3C4] bg-[#FFFDF8] p-5">
             <p className="text-sm font-bold text-[#0B2341]">Demo account</p>
 
@@ -97,7 +114,7 @@ export default function LoginPage() {
 
         {/* 
           Right login panel.
-          This keeps the actual login form focused and easy to use.
+          Keeping this section clean helps the user focus only on signing in.
         */}
         <section className="flex items-center justify-center bg-[#F8FAFC] p-10">
           <div className="w-full max-w-md rounded-3xl border border-[#E5EAF0] bg-white p-8 shadow-sm">
@@ -158,8 +175,12 @@ export default function LoginPage() {
 
                   <button
                     type="button"
-                    aria-label={showPassword ? "Hide password" : "Show password"}
-                    onClick={() => setShowPassword((currentValue) => !currentValue)}
+                    aria-label={
+                      showPassword ? "Hide password" : "Show password"
+                    }
+                    onClick={() =>
+                      setShowPassword((currentValue) => !currentValue)
+                    }
                     className="text-[#667085] transition hover:text-[#0B2341]"
                   >
                     {showPassword ? (

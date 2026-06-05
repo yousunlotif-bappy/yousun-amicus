@@ -9,8 +9,8 @@ export default function SignupPage() {
   const router = useRouter();
 
   /*
-    Pre-filled demo data keeps the hackathon demo smooth.
-    A judge can create the demo profile quickly without typing everything.
+    Pre-filled demo data keeps the signup flow fast for testing and demo.
+    Later, this form will connect with a real backend signup API.
   */
   const [name, setName] = useState("Bappy");
   const [email, setEmail] = useState("bappy@amicus.ai");
@@ -20,8 +20,8 @@ export default function SignupPage() {
     event.preventDefault();
 
     /*
-      This is a simple demo signup.
-      Later, we will replace this with a real backend user creation API.
+      Simple demo account creation.
+      We save the user locally so the dashboard can show the correct profile.
     */
     const demoUser = {
       name: name.trim() || "Bappy",
@@ -30,25 +30,31 @@ export default function SignupPage() {
       bank: bank.trim() || "YOUSUN Demo Bank",
     };
 
-    /*
-      Save the demo user in localStorage.
-      AuthGuard will read this and allow access to the dashboard.
-    */
     localStorage.setItem("yousun_amicus_user", JSON.stringify(demoUser));
-
     router.push("/dashboard");
   }
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#F8FAFC] px-6 py-10">
       <div className="w-full max-w-lg rounded-3xl border border-[#E5EAF0] bg-white p-8 shadow-sm">
-        {/* Header area */}
+        {/* 
+          Brand header.
+          Logo + project name makes the signup page feel connected to the full product.
+        */}
         <div className="text-center">
           <img
             src="/logo.png"
             alt="YOUSUN Amicus Logo"
-            className="mx-auto h-28 w-auto"
+            className="mx-auto h-24 w-auto"
           />
+
+          <h2 className="mt-4 text-2xl font-bold text-[#0B2341]">
+            YOUSUN <span className="text-[#0E9F9A]">Amicus</span>
+          </h2>
+
+          <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#667085]">
+            AI Agent for Fair Banking
+          </p>
 
           <h1 className="mt-6 text-3xl font-bold text-[#0B2341]">
             Create Demo Account
