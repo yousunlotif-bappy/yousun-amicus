@@ -9,8 +9,8 @@ import {
 } from "lucide-react";
 
 /*
-  Sidebar menu items for the main dashboard.
-  For now, these are static items. Later, we can connect them with real routes.
+  Main sidebar navigation for YOUSUN Amicus.
+  These items are static for now. Later, we can connect each item with real routes.
 */
 const navItems = [
   { name: "Dashboard", icon: LayoutDashboard, active: true },
@@ -23,17 +23,23 @@ const navItems = [
 
 export function Sidebar() {
   return (
-    <aside className="fixed left-0 top-0 z-20 h-screen w-[250px] border-r border-[#E5EAF0] bg-white px-5 py-6">
-      {/* Logo area */}
-      <div className="flex flex-col items-center">
+    <aside className="fixed left-0 top-0 z-20 flex h-screen w-[250px] flex-col border-r border-[#E5EAF0] bg-white px-5 py-6">
+      {/* 
+        Logo section.
+        Keeping it centered gives the sidebar a clean banking SaaS look.
+      */}
+      <div className="flex justify-center">
         <img
           src="/logo.png"
           alt="YOUSUN Amicus Logo"
-          className="h-36 w-auto object-contain"
+          className="h-28 w-auto object-contain"
         />
       </div>
 
-      {/* Main navigation */}
+      {/* 
+        Sidebar menu.
+        The active item uses a soft teal background so users can quickly see where they are.
+      */}
       <nav className="mt-8 space-y-2">
         {navItems.map((item) => {
           const Icon = item.icon;
@@ -60,25 +66,26 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* Bottom agent status and footer */}
-      <div className="absolute bottom-8 left-5 right-5">
+      {/* 
+        Bottom area.
+        This gives the product a stronger AI-agent identity without making the UI too busy.
+      */}
+      <div className="mt-auto">
         <div className="border-t border-[#E5EAF0] pt-6">
           <div className="flex gap-3">
-            <Sparkles className="mt-1 h-5 w-5 text-[#C9961A]" />
+            <Sparkles className="mt-1 h-5 w-5 shrink-0 text-[#C9961A]" />
 
             <div>
               <p className="text-sm font-bold text-[#0B2341]">AI Agent</p>
 
               <p className="mt-1 text-xs leading-5 text-[#667085]">
-                Always analyzing,
-                <br />
-                always protecting.
+                Always analyzing, always protecting.
               </p>
             </div>
           </div>
         </div>
 
-        {/* Small footer note for the dashboard */}
+        {/* Small product footer */}
         <p className="mt-8 text-xs leading-5 text-[#667085]">
           © 2026 YOUSUN Amicus
           <br />

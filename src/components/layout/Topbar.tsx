@@ -2,14 +2,14 @@ import { Bell, ChevronDown, Search, UserCircle } from "lucide-react";
 
 export function Topbar() {
   return (
-    <header className="flex items-start justify-between gap-6">
+    <header className="flex items-center justify-between gap-6">
       {/* 
-        Page title area.
+        Welcome section.
         For now, "Bappy" is our demo bank officer.
-        Later, this will come from the logged-in user's profile.
+        Later, this name will come from the authenticated user profile.
       */}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-[#0B2341]">
+      <div className="min-w-[320px]">
+        <h1 className="whitespace-nowrap text-3xl font-bold tracking-tight text-[#0B2341]">
           Welcome back, Bappy
         </h1>
 
@@ -18,14 +18,17 @@ export function Topbar() {
         </p>
       </div>
 
-      {/* Right side actions: search, notifications, and user profile */}
+      {/* 
+        Right side actions.
+        This area keeps search, notifications, and user account controls together.
+      */}
       <div className="flex items-center gap-5">
         {/* 
-          Search bar for dashboard data.
-          It is hidden on smaller screens to keep the layout clean.
+          Dashboard search bar.
+          Hidden on smaller screens so the layout does not feel crowded.
         */}
         <div className="hidden h-12 w-[430px] items-center rounded-xl border border-[#D9E0EA] bg-white px-4 shadow-sm lg:flex">
-          <Search className="h-5 w-5 text-[#0B2341]" />
+          <Search className="h-5 w-5 shrink-0 text-[#0B2341]" />
 
           <input
             type="text"
@@ -34,7 +37,7 @@ export function Topbar() {
           />
         </div>
 
-        {/* Notification button */}
+        {/* Notification button with a small alert dot */}
         <button
           type="button"
           aria-label="View notifications"
@@ -42,11 +45,10 @@ export function Topbar() {
         >
           <Bell className="h-5 w-5 text-[#0B2341]" />
 
-          {/* Small gold dot to show there are new alerts */}
           <span className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-[#C9961A]" />
         </button>
 
-        {/* User profile button */}
+        {/* User profile menu button */}
         <button
           type="button"
           aria-label="Open user menu"

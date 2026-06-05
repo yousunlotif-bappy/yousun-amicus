@@ -19,15 +19,18 @@ import { Topbar } from "@/components/layout/Topbar";
 export default function DashboardPage() {
   return (
     <main className="min-h-screen bg-[#F8FAFC]">
-      {/* Fixed sidebar makes the product feel like a real banking SaaS dashboard */}
+      {/* Fixed sidebar gives the app a real banking SaaS dashboard feeling */}
       <Sidebar />
 
-      {/* Main content starts after the sidebar width */}
+      {/* Main dashboard content starts after the sidebar width */}
       <section className="ml-[250px] px-9 py-7">
         <Topbar />
 
-        {/* Top-level portfolio metrics */}
-        <div className="mt-8 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
+        {/* 
+          Top metric cards.
+          lg:grid-cols-4 keeps all four cards in one row on normal laptop/desktop screens.
+        */}
+        <div className="mt-8 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">
           <MetricCard
             title="Active Applications"
             value="128"
@@ -58,19 +61,20 @@ export default function DashboardPage() {
           />
         </div>
 
-        {/* Main analysis cards */}
+        {/* Main analysis area */}
         <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-3">
           <ApplicantOverview />
           <FinancialTwinCard />
           <FutureMirrorCard />
         </div>
 
-        {/* Supporting insight cards */}
+        {/* Supporting dashboard cards */}
         <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-2">
           <DynamicEmiCard />
           <ReportCenterCard />
         </div>
 
+        {/* Bottom action banner */}
         <RescueBanner />
       </section>
     </main>
@@ -82,7 +86,7 @@ function SectionTitle({ title }: { title: string }) {
     <div className="flex items-center gap-2">
       <h2 className="text-lg font-bold text-[#0B2341]">{title}</h2>
 
-      {/* Placeholder for future tooltip/explanation */}
+      {/* This info icon can later show a small tooltip explanation */}
       <Info className="h-4 w-4 text-[#98A2B3]" />
     </div>
   );
@@ -104,7 +108,7 @@ function ApplicantOverview() {
       </div>
 
       <div className="flex items-center gap-8">
-        {/* Lightweight donut chart using CSS only */}
+        {/* Simple CSS donut chart for a clean MVP dashboard */}
         <div className="relative flex h-40 w-40 shrink-0 items-center justify-center rounded-full bg-[conic-gradient(#0B2341_0_35%,#0E9F9A_35%_72%,#D9E0EA_72%_100%)]">
           <div className="flex h-24 w-24 flex-col items-center justify-center rounded-full bg-white">
             <span className="text-3xl font-bold text-[#0B2341]">128</span>
@@ -112,7 +116,7 @@ function ApplicantOverview() {
           </div>
         </div>
 
-        {/* Status breakdown */}
+        {/* Application status list */}
         <div className="flex-1 space-y-4">
           {applicationRows.map(([label, value, color]) => (
             <div
@@ -161,7 +165,7 @@ function FinancialTwinCard() {
           </div>
         </div>
 
-        {/* Small AI-generated insight preview */}
+        {/* Short AI insight preview */}
         <div className="mt-8 flex w-full gap-3 rounded-xl border border-[#F0E3C4] bg-[#FFFDF8] p-4">
           <Sparkles className="mt-1 h-5 w-5 text-[#C9961A]" />
 
@@ -305,7 +309,7 @@ function DynamicEmiCard() {
           </div>
         </div>
 
-        {/* Simple visual trend for EMI movement */}
+        {/* Simple bar chart for EMI movement */}
         <div className="flex flex-1 items-end gap-4 border-b border-[#D9E0EA] pb-8">
           {emiPoints.map((point, index) => (
             <div
@@ -402,7 +406,7 @@ function RescueBanner() {
   return (
     <div className="mt-6 flex items-center justify-between rounded-2xl border border-[#E4B14B] bg-[#FFFDF8] p-6 shadow-sm">
       <div className="flex items-center gap-5">
-        {/* Gold shield for the rescue-before-default concept */}
+        {/* Gold shield icon supports the rescue-before-default story */}
         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#F8E9C8]">
           <ShieldCheck className="h-8 w-8 text-[#C9961A]" />
         </div>
