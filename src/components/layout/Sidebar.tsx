@@ -1,3 +1,7 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   BarChart3,
   FileText,
@@ -10,25 +14,25 @@ import {
 
 /*
   Main sidebar navigation for YOUSUN Amicus.
-  For now, these menu items are static.
-  Later, we can connect them with real routes like /applications, /reports, and /settings.
+  Each item has its own route, so the sidebar can highlight the current page automatically.
 */
 const navItems = [
-  { name: "Dashboard", icon: LayoutDashboard, active: true },
-  { name: "Applications", icon: FileText },
-  { name: "Customers", icon: Users },
-  { name: "Risk Monitor", icon: ShieldAlert },
-  { name: "Reports", icon: BarChart3 },
-  { name: "Settings", icon: Settings },
+  { name: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
+  { name: "Applications", icon: FileText, href: "/applications" },
+  { name: "Customers", icon: Users, href: "/customers" },
+  { name: "Risk Monitor", icon: ShieldAlert, href: "/risk-monitor" },
+  { name: "Reports", icon: BarChart3, href: "/reports" },
+  { name: "Settings", icon: Settings, href: "/settings" },
 ];
 
 export function Sidebar() {
+  const pathname = usePathname();
+
   return (
     <aside className="fixed left-0 top-0 z-20 flex h-screen w-[230px] flex-col border-r border-[#E5EAF0] bg-white px-4 py-6">
       {/* 
-        Brand area.
-        The logo, title, and small tagline help the dashboard feel like a real product,
-        not just a temporary demo screen.
+        Brand section.
+        This keeps the product identity visible across every dashboard page.
       */}
       <div className="flex flex-col items-center text-center">
         <img
@@ -45,43 +49,46 @@ export function Sidebar() {
           Fair Banking Agent
         </p>
 
-        {/* Small gold accent line for a premium banking feel */}
+        {/* Small gold line for a premium banking feel */}
         <div className="mt-3 h-[2px] w-14 bg-[#C9961A]" />
       </div>
 
       {/* 
-        Sidebar navigation.
-        The active item uses a soft teal background so the current page is easy to notice.
+        Navigation links.
+        The active page gets a soft teal background so users always know where they are.
       */}
       <nav className="mt-8 space-y-2">
         {navItems.map((item) => {
           const Icon = item.icon;
 
+          const isActive =
+            pathname === item.href || pathname.startsWith(`${item.href}/`);
+
           return (
-            <button
+            <Link
               key={item.name}
-              type="button"
+              href={item.href}
               className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition ${
-                item.active
+                isActive
                   ? "bg-[#E8F7F5] text-[#0B2341]"
                   : "text-[#0B2341] hover:bg-[#F3F7F8]"
               }`}
             >
               <Icon
                 className={`h-5 w-5 shrink-0 ${
-                  item.active ? "text-[#0E9F9A]" : "text-[#0B2341]"
+                  isActive ? "text-[#0E9F9A]" : "text-[#0B2341]"
                 }`}
               />
 
               <span>{item.name}</span>
-            </button>
+            </Link>
           );
         })}
       </nav>
 
       {/* 
-        Bottom agent identity section.
-        This supports the main story of the product: AI-assisted fair lending and early rescue.
+        Bottom AI identity block.
+        This supports the main product story: fair lending with early risk protection.
       */}
       <div className="mt-auto">
         <div className="border-t border-[#E5EAF0] pt-5">
@@ -105,10 +112,11 @@ export function Sidebar() {
           All rights reserved.
         </p>
 
-        {/* Final small accent line */}
+        {/* Final gold accent */}
         <div className="mt-4 h-[2px] w-14 bg-[#C9961A]" />
       </div>
     </aside>
   );
 }
+
 
