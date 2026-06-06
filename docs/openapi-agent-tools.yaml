@@ -4,7 +4,8 @@ info:
   version: 1.0.0
   description: API tools for the YOUSUN Amicus Loan Review Agent.
 servers:
-  - url: https://YOUR_DEPLOYED_URL
+  servers:
+  - url: https://yousun-amicus.vercel.app
 paths:
   /api/agent/loan-review:
     post:
@@ -71,4 +72,3 @@ paths:
         "200":
           description: Generated report
 
-          
