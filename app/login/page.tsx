@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Lock, Mail } from "lucide-react";
 
@@ -9,60 +8,78 @@ export default function LoginPage() {
   const router = useRouter();
 
   /*
-    Demo credentials are pre-filled so the hackathon demo stays smooth.
-    Later, this part will be replaced with a real backend authentication system.
+    Default values are kept for quick demo login.
+    During judging/demo, this saves time and keeps the flow smooth.
   */
   const [email, setEmail] = useState("bappy@amicus.ai");
   const [password, setPassword] = useState("demo123");
   const [showPassword, setShowPassword] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
+  const [error, setError] = useState("");
 
   function handleLogin(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setErrorMessage("");
+    setError("");
 
     /*
-      Simple MVP login check.
-      This is only for demo purposes, not production security.
+      Demo user 1:
+      Bank officer can review applications, run agents,
+      generate reports, and create rescue plans.
     */
-    const validEmail = "bappy@amicus.ai";
-    const validPassword = "demo123";
+    const bankOfficer = {
+      email: "bappy@amicus.ai",
+      password: "demo123",
+      user: {
+        name: "Bappy",
+        email: "bappy@amicus.ai",
+        role: "Bank Officer",
+        bank: "YOUSUN Demo Bank",
+        portal: "bank",
+      },
+    };
 
-    if (email.trim() !== validEmail || password !== validPassword) {
-      setErrorMessage(
-        "Invalid email or password. Please use the demo credentials."
+    /*
+      Demo user 2:
+      Customer portal user.
+      This user will submit/view their own application from the customer side.
+    */
+    const customer = {
+      email: "rafi@amicus.ai",
+      password: "demo123",
+      user: {
+        name: "Rafi Khan",
+        email: "rafi@amicus.ai",
+        role: "Customer",
+        bank: "YOUSUN Demo Bank",
+        portal: "customer",
+      },
+    };
+
+    if (email === bankOfficer.email && password === bankOfficer.password) {
+      localStorage.setItem(
+        "yousun_amicus_user",
+        JSON.stringify(bankOfficer.user)
       );
+
+      router.push("/dashboard");
       return;
     }
 
-    /*
-      Save the demo user locally.
-      The AuthGuard and Topbar will use this saved user data.
-    */
-    const demoUser = {
-      name: "Bappy",
-      email: "bappy@amicus.ai",
-      role: "Bank Officer",
-      bank: "YOUSUN Demo Bank",
-    };
+    if (email === customer.email && password === customer.password) {
+      localStorage.setItem("yousun_amicus_user", JSON.stringify(customer.user));
 
-    localStorage.setItem("yousun_amicus_user", JSON.stringify(demoUser));
-    router.push("/dashboard");
+      router.push("/customer/dashboard");
+      return;
+    }
+
+    setError("Invalid email or password. Use demo credentials.");
   }
 
   return (
     <main className="min-h-screen bg-[#F8FAFC] px-6 py-8">
       <div className="mx-auto grid min-h-[calc(100vh-64px)] max-w-6xl grid-cols-1 overflow-hidden rounded-3xl border border-[#E5EAF0] bg-white shadow-sm lg:grid-cols-2">
-        {/* 
-          Left brand panel.
-          This side explains what YOUSUN Amicus does before the user logs in.
-        */}
+        {/* Left side: project story and demo credentials */}
         <section className="flex flex-col justify-between bg-white p-10">
           <div>
-            {/* 
-              Brand block.
-              Logo + project name makes the login screen feel more polished and complete.
-            */}
             <div>
               <img
                 src="/logo.png"
@@ -92,30 +109,43 @@ export default function LoginPage() {
 
               <p className="mt-5 max-w-md text-base leading-7 text-[#667085]">
                 YOUSUN Amicus helps bank officers review loan applications,
-                generate fair lending reports, and detect borrower distress
-                before default.
+                generate fair lending reports, and detect distress before
+                default. Customers can also access a separate portal for their
+                own application journey.
               </p>
             </div>
           </div>
 
-          {/* Demo login helper for judges and quick testing */}
+          {/* Demo credentials for both portals */}
           <div className="rounded-2xl border border-[#F0E3C4] bg-[#FFFDF8] p-5">
-            <p className="text-sm font-bold text-[#0B2341]">Demo account</p>
+            <p className="text-sm font-bold text-[#0B2341]">Demo accounts</p>
 
-            <p className="mt-2 text-sm text-[#667085]">
-              Email: <span className="font-semibold">bappy@amicus.ai</span>
-            </p>
+            <div className="mt-2 space-y-3 text-sm text-[#667085]">
+              <div>
+                <p className="font-bold text-[#0B2341]">Bank Officer</p>
+                <p>
+                  Email:{" "}
+                  <span className="font-semibold">bappy@amicus.ai</span>
+                </p>
+                <p>
+                  Password: <span className="font-semibold">demo123</span>
+                </p>
+              </div>
 
-            <p className="text-sm text-[#667085]">
-              Password: <span className="font-semibold">demo123</span>
-            </p>
+              <div className="border-t border-[#F0E3C4] pt-3">
+                <p className="font-bold text-[#0B2341]">Customer</p>
+                <p>
+                  Email: <span className="font-semibold">rafi@amicus.ai</span>
+                </p>
+                <p>
+                  Password: <span className="font-semibold">demo123</span>
+                </p>
+              </div>
+            </div>
           </div>
         </section>
 
-        {/* 
-          Right login panel.
-          Keeping this section clean helps the user focus only on signing in.
-        */}
+        {/* Right side: login form */}
         <section className="flex items-center justify-center bg-[#F8FAFC] p-10">
           <div className="w-full max-w-md rounded-3xl border border-[#E5EAF0] bg-white p-8 shadow-sm">
             <h2 className="text-3xl font-bold text-[#0B2341]">
@@ -123,65 +153,51 @@ export default function LoginPage() {
             </h2>
 
             <p className="mt-2 text-sm text-[#667085]">
-              Login to continue to your lending intelligence dashboard.
+              Login as a bank officer or customer to continue.
             </p>
 
             <form onSubmit={handleLogin} className="mt-8 space-y-5">
-              {/* Email field */}
               <div>
-                <label
-                  htmlFor="email"
-                  className="text-sm font-semibold text-[#0B2341]"
-                >
+                <label className="text-sm font-semibold text-[#0B2341]">
                   Email address
                 </label>
 
                 <div className="mt-2 flex h-12 items-center rounded-xl border border-[#D9E0EA] bg-white px-4">
-                  <Mail className="h-5 w-5 text-[#667085]" />
+                  <Mail className="h-5 w-5 shrink-0 text-[#667085]" />
 
                   <input
-                    id="email"
                     value={email}
                     onChange={(event) => setEmail(event.target.value)}
                     type="email"
-                    autoComplete="email"
-                    className="ml-3 w-full bg-transparent text-sm text-[#0B2341] outline-none placeholder:text-[#98A2B3]"
+                    className="ml-3 w-full bg-transparent text-sm text-[#0B2341] outline-none"
                     placeholder="bappy@amicus.ai"
                   />
                 </div>
               </div>
 
-              {/* Password field */}
               <div>
-                <label
-                  htmlFor="password"
-                  className="text-sm font-semibold text-[#0B2341]"
-                >
+                <label className="text-sm font-semibold text-[#0B2341]">
                   Password
                 </label>
 
                 <div className="mt-2 flex h-12 items-center rounded-xl border border-[#D9E0EA] bg-white px-4">
-                  <Lock className="h-5 w-5 text-[#667085]" />
+                  <Lock className="h-5 w-5 shrink-0 text-[#667085]" />
 
                   <input
-                    id="password"
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
                     type={showPassword ? "text" : "password"}
-                    autoComplete="current-password"
-                    className="ml-3 w-full bg-transparent text-sm text-[#0B2341] outline-none placeholder:text-[#98A2B3]"
+                    className="ml-3 w-full bg-transparent text-sm text-[#0B2341] outline-none"
                     placeholder="Enter password"
                   />
 
                   <button
                     type="button"
+                    onClick={() => setShowPassword((current) => !current)}
+                    className="text-[#667085] transition hover:text-[#0B2341]"
                     aria-label={
                       showPassword ? "Hide password" : "Show password"
                     }
-                    onClick={() =>
-                      setShowPassword((currentValue) => !currentValue)
-                    }
-                    className="text-[#667085] transition hover:text-[#0B2341]"
                   >
                     {showPassword ? (
                       <EyeOff className="h-5 w-5" />
@@ -192,10 +208,9 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              {/* Login error message */}
-              {errorMessage ? (
+              {error ? (
                 <div className="rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
-                  {errorMessage}
+                  {error}
                 </div>
               ) : null}
 
@@ -203,15 +218,15 @@ export default function LoginPage() {
                 type="submit"
                 className="h-12 w-full rounded-xl bg-[#0B2341] text-sm font-bold text-white transition hover:bg-[#071A2F]"
               >
-                Login to Dashboard
+                Login
               </button>
             </form>
 
             <p className="mt-6 text-center text-sm text-[#667085]">
-              Don&apos;t have an account?{" "}
-              <Link href="/signup" className="font-bold text-[#0E9F9A]">
+              New customer?{" "}
+              <a href="/signup" className="font-bold text-[#0E9F9A]">
                 Create demo account
-              </Link>
+              </a>
             </p>
           </div>
         </section>
@@ -219,5 +234,4 @@ export default function LoginPage() {
     </main>
   );
 }
-
 

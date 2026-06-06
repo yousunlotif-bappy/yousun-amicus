@@ -1,49 +1,32 @@
-/*
-  Demo loan application data for YOUSUN Amicus.
-
-  For now, this file works as our temporary database.
-  Later, these records will come from MongoDB through backend APIs.
-*/
-
-export type RiskLevel = "Low" | "Medium" | "High";
-
-export type ApplicationStatus =
-  | "AI Review Pending"
-  | "Under Review"
-  | "Approved"
-  | "Rejected";
-
 export type LoanApplication = {
   id: string;
   businessName: string;
   ownerName: string;
   businessType: string;
   location: string;
-
   requestedLoan: number;
   recommendedLoan: number;
   existingEmi: number;
   averageMonthlySales: number;
-
-  riskLevel: RiskLevel;
-  status: ApplicationStatus;
+  riskLevel: "Low" | "Medium" | "High";
+  status: "AI Review Pending" | "Under Review" | "Approved" | "Rejected";
   productType: string;
   seasonality: string;
-
   twinScore: number;
   businessHealth: number;
   approvalReadiness: number;
-
   documents: string[];
   createdAt: string;
+
+  /*
+    Optional fields for Step 14 customer/bank submission flow.
+    Old demo applications will still work even if these fields are missing.
+  */
+  submittedBy?: "bank_officer" | "customer";
+  customerEmail?: string;
+  loanPurpose?: string;
 };
 
-/*
-  Main demo applications.
-  APP-001 is the primary case for the hackathon demo:
-  Rahim Fashion House asks for BDT 15 lakh, but Amicus recommends BDT 9 lakh
-  to reduce debt pressure and protect the borrower before default.
-*/
 export const demoApplications: LoanApplication[] = [
   {
     id: "APP-001",
@@ -64,6 +47,9 @@ export const demoApplications: LoanApplication[] = [
     approvalReadiness: 72,
     documents: ["Trade License", "Bank Statement", "Supplier Invoice"],
     createdAt: "2026-06-05",
+    submittedBy: "bank_officer",
+    customerEmail: "rahim@example.com",
+    loanPurpose: "Inventory purchase before seasonal sales period",
   },
   {
     id: "APP-002",
@@ -84,6 +70,9 @@ export const demoApplications: LoanApplication[] = [
     approvalReadiness: 78,
     documents: ["Trade License", "Bank Statement"],
     createdAt: "2026-06-04",
+    submittedBy: "bank_officer",
+    customerEmail: "shuvo@example.com",
+    loanPurpose: "Supplier payment and short-term working capital support",
   },
   {
     id: "APP-003",
@@ -104,6 +93,9 @@ export const demoApplications: LoanApplication[] = [
     approvalReadiness: 58,
     documents: ["Trade License", "Bank Statement", "Inventory List"],
     createdAt: "2026-06-03",
+    submittedBy: "bank_officer",
+    customerEmail: "aminul@example.com",
+    loanPurpose: "Electronics inventory financing for festival demand",
   },
   {
     id: "APP-004",
@@ -124,22 +116,17 @@ export const demoApplications: LoanApplication[] = [
     approvalReadiness: 83,
     documents: ["Trade License", "Bank Statement", "Land Lease"],
     createdAt: "2026-06-02",
+    submittedBy: "bank_officer",
+    customerEmail: "fahim@example.com",
+    loanPurpose: "Seasonal agriculture input and harvest cycle support",
   },
 ];
 
-/*
-  Find one application by ID.
-  This will be useful for application details pages like /applications/APP-001.
-*/
-export function getApplicationById(id: string): LoanApplication | undefined {
+export function getApplicationById(id: string) {
   return demoApplications.find((application) => application.id === id);
 }
 
-/*
-  Format Bangladeshi Taka nicely for the UI.
-  Example: 1500000 -> BDT 15,00,000
-*/
-export function formatBDT(amount: number): string {
+export function formatBDT(amount: number) {
   return new Intl.NumberFormat("en-BD", {
     style: "currency",
     currency: "BDT",

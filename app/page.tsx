@@ -50,7 +50,7 @@ export default function HomePage() {
                 href="/login"
                 className="rounded-xl bg-[#0B2341] px-6 py-3 text-sm font-bold text-white transition hover:bg-[#071A2F]"
               >
-                Login as Bappy
+                Login
               </Link>
 
               <Link
@@ -63,10 +63,16 @@ export default function HomePage() {
           </div>
 
           {/* Demo login helper */}
-          <p className="mt-10 text-xs text-[#667085]">
-            Demo account:{" "}
+          <p className="mt-10 text-xs leading-6 text-[#667085]">
+            Bank demo:{" "}
             <span className="font-semibold text-[#0B2341]">
               bappy@amicus.ai
+            </span>{" "}
+            / <span className="font-semibold text-[#0B2341]">demo123</span>
+            <span className="mx-2 text-[#C9961A]">•</span>
+            Customer demo:{" "}
+            <span className="font-semibold text-[#0B2341]">
+              rafi@amicus.ai
             </span>{" "}
             / <span className="font-semibold text-[#0B2341]">demo123</span>
           </p>
@@ -112,6 +118,7 @@ export default function HomePage() {
               <FeaturePill text="MongoDB-backed borrower memory" />
               <FeaturePill text="Gemini-powered report generation" />
               <FeaturePill text="Responsible AI decision-support" />
+              <FeaturePill text="Customer application submission portal" />
             </div>
           </div>
         </div>
@@ -127,5 +134,4 @@ function FeaturePill({ text }: { text: string }) {
     </div>
   );
 }
-
 

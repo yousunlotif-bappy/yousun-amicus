@@ -13,6 +13,8 @@ import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+export const dynamic = "force-dynamic";
+
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { AgentActionButtons } from "@/components/applications/AgentActionButtons";
 import { AgentActivityTimeline } from "@/components/applications/AgentActivityTimeline";

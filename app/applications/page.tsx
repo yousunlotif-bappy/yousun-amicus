@@ -15,8 +15,8 @@ import { getAllApplicationsFromDb } from "@/lib/db-applications";
 
 export default async function ApplicationsPage() {
   /*
-    Applications now come from MongoDB.
-    If MongoDB has any issue, getAllApplicationsFromDb will safely return demo data.
+    Applications are loaded from MongoDB.
+    If MongoDB is unavailable, the database helper safely falls back to demo data.
   */
   const applications = await getAllApplicationsFromDb();
 
@@ -38,7 +38,6 @@ export default async function ApplicationsPage() {
               </p>
             </div>
 
-            {/* Search UI for future filtering */}
             <div className="flex h-12 w-full max-w-md items-center rounded-xl border border-[#D9E0EA] bg-white px-4 shadow-sm">
               <Search className="h-5 w-5 shrink-0 text-[#0B2341]" />
 
@@ -50,17 +49,44 @@ export default async function ApplicationsPage() {
             </div>
           </div>
 
-          {/* Quick summary cards */}
+          {/* Summary cards */}
           <div className="mt-8 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
-            <SummaryCard title="Total Applications" value="128" />
-            <SummaryCard title="AI Review Pending" value="48" />
-            <SummaryCard title="Officer Review" value="42" />
-            <SummaryCard title="Approved This Week" value="18" />
+            <SummaryCard
+              title="Total Applications"
+              value={String(applications.length)}
+            />
+
+            <SummaryCard
+              title="AI Review Pending"
+              value={String(
+                applications.filter(
+                  (application) => application.status === "AI Review Pending"
+                ).length
+              )}
+            />
+
+            <SummaryCard
+              title="Customer Submitted"
+              value={String(
+                applications.filter(
+                  (application) => application.submittedBy === "customer"
+                ).length
+              )}
+            />
+
+            <SummaryCard
+              title="Approved"
+              value={String(
+                applications.filter(
+                  (application) => application.status === "Approved"
+                ).length
+              )}
+            />
           </div>
 
-          {/* Application list */}
+          {/* Applications list */}
           <div className="mt-8 rounded-2xl border border-[#E5EAF0] bg-white p-6 shadow-sm">
-            <div className="mb-6 flex items-center justify-between">
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
               <h2 className="text-xl font-bold text-[#0B2341]">
                 Recent Applications
               </h2>
@@ -78,7 +104,6 @@ export default async function ApplicationsPage() {
                   className="block rounded-2xl border border-[#E5EAF0] bg-white p-5 transition hover:border-[#0E9F9A] hover:shadow-sm"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-5">
-                    {/* Application identity */}
                     <div className="flex items-start gap-4">
                       <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#E8F7F5]">
                         <Store className="h-7 w-7 text-[#0E9F9A]" />
@@ -91,8 +116,15 @@ export default async function ApplicationsPage() {
                           </h3>
 
                           <StatusBadge status={application.status} />
+
+                          {application.submittedBy === "customer" ? (
+                            <span className="rounded-full bg-[#FFF7E8] px-3 py-1 text-xs font-bold text-[#C9961A]">
+                              Customer Submitted
+                            </span>
+                          ) : null}
                         </div>
 
+                        {/* Application metadata */}
                         <div className="mt-2 flex flex-wrap gap-4 text-sm text-[#667085]">
                           <span className="flex items-center gap-1.5">
                             <FileText className="h-4 w-4" />
@@ -108,11 +140,19 @@ export default async function ApplicationsPage() {
                             <CalendarDays className="h-4 w-4" />
                             {application.createdAt}
                           </span>
+
+                          <span>
+                            Submitted by:{" "}
+                            <strong className="font-semibold text-[#0B2341]">
+                              {application.submittedBy === "customer"
+                                ? "Customer"
+                                : "Bank Officer"}
+                            </strong>
+                          </span>
                         </div>
                       </div>
                     </div>
 
-                    {/* Application numbers */}
                     <div className="grid grid-cols-2 gap-5 text-right md:grid-cols-4">
                       <MiniStat
                         label="Requested"
@@ -149,7 +189,9 @@ function SummaryCard({ title, value }: { title: string; value: string }) {
   return (
     <div className="rounded-2xl border border-[#E5EAF0] bg-white p-5 shadow-sm">
       <p className="text-sm font-semibold text-[#667085]">{title}</p>
+
       <p className="mt-3 text-3xl font-bold text-[#0B2341]">{value}</p>
+
       <p className="mt-2 text-xs font-semibold text-[#0E9F9A]">
         Updated today
       </p>
@@ -216,5 +258,4 @@ function StatusBadge({ status }: { status: string }) {
     </span>
   );
 }
-
 
