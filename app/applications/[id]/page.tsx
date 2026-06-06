@@ -15,8 +15,9 @@ import { notFound } from "next/navigation";
 
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { Sidebar } from "@/components/layout/Sidebar";
-import { formatBDT, getApplicationById } from "@/data/applications";
-import { getReportsByApplicationId } from "@/data/reports";
+import { formatBDT } from "@/data/applications";
+import { getApplicationByIdFromDb } from "@/lib/db-applications";
+import { getReportsByApplicationIdFromDb } from "@/lib/db-reports";
 import { runAmicusAnalysis } from "@/lib/agent-calculations";
 
 type PageProps = {
@@ -27,36 +28,31 @@ type PageProps = {
 
 export default async function ApplicationDetailPage({ params }: PageProps) {
   const { id } = await params;
-  const application = getApplicationById(id);
 
   /*
-    If someone opens an application ID that does not exist,
-    we show the proper Next.js not-found page instead of breaking the app.
+    Application now comes from MongoDB.
+    If MongoDB fails, the repository will safely fall back to local demo data.
   */
+  const application = await getApplicationByIdFromDb(id);
+
   if (!application) {
     notFound();
   }
 
-  /*
-    Run the full Amicus analysis for this application.
-    This gives us Financial Twin, Future Mirror, Safe Loan, EMI, and Rescue Plan.
-  */
   const analysis = runAmicusAnalysis(application);
 
   /*
-    Pull all generated reports connected to this application.
-    These will be shown inside the Report Center card.
+    Reports also come from MongoDB now.
+    If there is any database issue, fallback demo reports will still appear.
   */
-  const reports = getReportsByApplicationId(application.id);
+  const reports = await getReportsByApplicationIdFromDb(application.id);
 
   return (
     <AuthGuard>
       <main className="min-h-screen overflow-x-hidden bg-[#F8FAFC]">
-        {/* Fixed sidebar keeps navigation consistent across dashboard pages */}
         <Sidebar />
 
         <section className="ml-[230px] max-w-[calc(100vw-230px)] px-7 py-7">
-          {/* Back navigation */}
           <Link
             href="/applications"
             className="mb-6 inline-flex items-center gap-2 text-sm font-bold text-[#0E9F9A] transition hover:text-[#087C78]"
@@ -65,7 +61,6 @@ export default async function ApplicationDetailPage({ params }: PageProps) {
             Back to Applications
           </Link>
 
-          {/* Application header */}
           <div className="flex flex-wrap items-start justify-between gap-5">
             <div>
               <div className="flex flex-wrap items-center gap-3">
@@ -92,7 +87,6 @@ export default async function ApplicationDetailPage({ params }: PageProps) {
             </button>
           </div>
 
-          {/* Key decision numbers */}
           <div className="mt-8 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
             <InfoCard
               title="Requested Loan"
@@ -117,7 +111,6 @@ export default async function ApplicationDetailPage({ params }: PageProps) {
             />
           </div>
 
-          {/* Applicant profile and Financial Twin result */}
           <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-3">
             <div className="rounded-2xl border border-[#E5EAF0] bg-white p-6 shadow-sm xl:col-span-2">
               <SectionTitle title="Applicant Profile" />
@@ -147,7 +140,6 @@ export default async function ApplicationDetailPage({ params }: PageProps) {
                 />
               </div>
 
-              {/* Amicus explanation from the analysis engine */}
               <div className="mt-6 rounded-2xl border border-[#F0E3C4] bg-[#FFFDF8] p-5">
                 <div className="flex gap-3">
                   <Sparkles className="mt-1 h-5 w-5 shrink-0 text-[#C9961A]" />
@@ -174,7 +166,6 @@ export default async function ApplicationDetailPage({ params }: PageProps) {
             />
           </div>
 
-          {/* Main decision-support panels */}
           <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-3">
             <FutureMirrorPanel scenarios={analysis.futureMirror} />
 
@@ -193,7 +184,6 @@ export default async function ApplicationDetailPage({ params }: PageProps) {
             />
           </div>
 
-          {/* Reports and Rescue Before Default */}
           <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-2">
             <ReportPanel reports={reports} />
 
@@ -215,8 +205,6 @@ function SectionTitle({ title }: { title: string }) {
   return (
     <div className="flex items-center gap-2">
       <h2 className="text-lg font-bold text-[#0B2341]">{title}</h2>
-
-      {/* Later this icon can open a small tooltip for extra explanation */}
       <Info className="h-4 w-4 text-[#98A2B3]" />
     </div>
   );
@@ -242,7 +230,6 @@ function InfoCard({
   return (
     <div className="rounded-2xl border border-[#E5EAF0] bg-white p-5 shadow-sm">
       <p className="text-sm font-semibold text-[#667085]">{title}</p>
-
       <p className={`mt-3 text-2xl font-bold ${valueColor}`}>{value}</p>
     </div>
   );
@@ -290,7 +277,6 @@ function FinancialTwinPanel({
       <SectionTitle title="Financial Twin DNA" />
 
       <div className="mt-8 flex flex-col items-center">
-        {/* Financial Twin score ring */}
         <div className="relative flex h-44 w-44 items-center justify-center rounded-full bg-[conic-gradient(#0E9F9A_0_76%,#0B2341_76%_84%,#D9E0EA_84%_100%)]">
           <div className="flex h-32 w-32 flex-col items-center justify-center rounded-full bg-white">
             <span className="text-4xl font-bold text-[#0B2341]">{score}</span>
@@ -492,7 +478,6 @@ function EmiRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between border-b border-[#EEF2F6] pb-3 last:border-0">
       <span className="text-sm text-[#667085]">{label}</span>
-
       <span className="text-sm font-bold text-[#0B2341]">{value}</span>
     </div>
   );
@@ -546,8 +531,7 @@ function ReportPanel({
             </p>
 
             <p className="mt-1 text-xs leading-5 text-[#667085]">
-              Reports will appear here after the Amicus report generator runs
-              for this application.
+              Reports will appear here after the Amicus report generator runs.
             </p>
           </div>
         )}
@@ -623,6 +607,5 @@ function RescuePanel({
     </div>
   );
 }
-
 
 
