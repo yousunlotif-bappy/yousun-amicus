@@ -15,10 +15,11 @@ import { notFound } from "next/navigation";
 
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { Sidebar } from "@/components/layout/Sidebar";
+import { GeminiReportButton } from "@/components/reports/GeminiReportButton";
 import { formatBDT } from "@/data/applications";
+import { runAmicusAnalysis } from "@/lib/agent-calculations";
 import { getApplicationByIdFromDb } from "@/lib/db-applications";
 import { getReportsByApplicationIdFromDb } from "@/lib/db-reports";
-import { runAmicusAnalysis } from "@/lib/agent-calculations";
 
 type PageProps = {
   params: Promise<{
@@ -31,7 +32,7 @@ export default async function ApplicationDetailPage({ params }: PageProps) {
 
   /*
     Application now comes from MongoDB.
-    If MongoDB fails, the repository will safely fall back to local demo data.
+    If MongoDB has an issue, the repository safely falls back to demo data.
   */
   const application = await getApplicationByIdFromDb(id);
 
@@ -39,11 +40,15 @@ export default async function ApplicationDetailPage({ params }: PageProps) {
     notFound();
   }
 
+  /*
+    Run the Amicus analysis engine for this borrower.
+    This powers Financial Twin, Future Mirror, Safe Loan, EMI, and Rescue Plan.
+  */
   const analysis = runAmicusAnalysis(application);
 
   /*
-    Reports also come from MongoDB now.
-    If there is any database issue, fallback demo reports will still appear.
+    Reports are also loaded from MongoDB.
+    Existing generated reports will appear under the Gemini buttons.
   */
   const reports = await getReportsByApplicationIdFromDb(application.id);
 
@@ -185,7 +190,7 @@ export default async function ApplicationDetailPage({ params }: PageProps) {
           </div>
 
           <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-2">
-            <ReportPanel reports={reports} />
+            <ReportPanel applicationId={application.id} reports={reports} />
 
             <RescuePanel
               distressLevel={analysis.rescuePlan.distressLevel}
@@ -484,8 +489,10 @@ function EmiRow({ label, value }: { label: string; value: string }) {
 }
 
 function ReportPanel({
+  applicationId,
   reports,
 }: {
+  applicationId: string;
   reports: {
     id: string;
     title: string;
@@ -498,43 +505,72 @@ function ReportPanel({
       <SectionTitle title="Report Center" />
 
       <div className="mt-6 space-y-4">
-        {reports.length > 0 ? (
-          reports.map((report) => (
-            <Link
-              href={`/reports/${report.id}`}
-              key={report.id}
-              className="flex w-full items-center justify-between rounded-xl border border-[#E5EAF0] p-4 text-left transition hover:border-[#0E9F9A]"
-            >
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#E8F7F5]">
-                  <FileText className="h-5 w-5 text-[#0E9F9A]" />
-                </div>
+        {/* Gemini-powered report generation buttons */}
+        <GeminiReportButton
+          applicationId={applicationId}
+          kind="bank_memo"
+          label="Generate Bank Memo"
+        />
 
-                <div>
-                  <span className="block text-sm font-bold text-[#0B2341]">
-                    {report.title}
-                  </span>
+        <GeminiReportButton
+          applicationId={applicationId}
+          kind="customer_summary"
+          label="Generate Customer Summary"
+        />
 
-                  <span className="text-xs text-[#667085]">
-                    {report.audience}
-                  </span>
-                </div>
+        <GeminiReportButton
+          applicationId={applicationId}
+          kind="rescue_report"
+          label="Generate Rescue Report"
+        />
+
+        {/* Existing reports already saved in MongoDB */}
+        <div className="border-t border-[#E5EAF0] pt-4">
+          <p className="mb-3 text-xs font-bold uppercase tracking-wide text-[#667085]">
+            Existing Reports
+          </p>
+
+          <div className="space-y-3">
+            {reports.length > 0 ? (
+              reports.map((report) => (
+                <Link
+                  href={`/reports/${report.id}`}
+                  key={report.id}
+                  className="flex w-full items-center justify-between rounded-xl border border-[#E5EAF0] p-4 text-left transition hover:border-[#0E9F9A]"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#E8F7F5]">
+                      <FileText className="h-5 w-5 text-[#0E9F9A]" />
+                    </div>
+
+                    <div>
+                      <span className="block text-sm font-bold text-[#0B2341]">
+                        {report.title}
+                      </span>
+
+                      <span className="text-xs text-[#667085]">
+                        {report.audience}
+                      </span>
+                    </div>
+                  </div>
+
+                  <BarChart3 className="h-4 w-4 text-[#667085]" />
+                </Link>
+              ))
+            ) : (
+              <div className="rounded-xl border border-dashed border-[#D9E0EA] p-4">
+                <p className="text-sm font-semibold text-[#0B2341]">
+                  No reports generated yet
+                </p>
+
+                <p className="mt-1 text-xs leading-5 text-[#667085]">
+                  Use the Gemini buttons above to generate reports for this
+                  application.
+                </p>
               </div>
-
-              <BarChart3 className="h-4 w-4 text-[#667085]" />
-            </Link>
-          ))
-        ) : (
-          <div className="rounded-xl border border-dashed border-[#D9E0EA] p-4">
-            <p className="text-sm font-semibold text-[#0B2341]">
-              No reports generated yet
-            </p>
-
-            <p className="mt-1 text-xs leading-5 text-[#667085]">
-              Reports will appear here after the Amicus report generator runs.
-            </p>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
@@ -607,5 +643,6 @@ function RescuePanel({
     </div>
   );
 }
+
 
 
