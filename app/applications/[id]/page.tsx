@@ -14,6 +14,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { AuthGuard } from "@/components/auth/AuthGuard";
+import { AgentActionButtons } from "@/components/applications/AgentActionButtons";
+import { AgentActivityTimeline } from "@/components/applications/AgentActivityTimeline";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { GeminiReportButton } from "@/components/reports/GeminiReportButton";
 import { formatBDT } from "@/data/applications";
@@ -31,7 +33,7 @@ export default async function ApplicationDetailPage({ params }: PageProps) {
   const { id } = await params;
 
   /*
-    Application now comes from MongoDB.
+    Application data comes from MongoDB.
     If MongoDB has an issue, the repository safely falls back to demo data.
   */
   const application = await getApplicationByIdFromDb(id);
@@ -47,7 +49,7 @@ export default async function ApplicationDetailPage({ params }: PageProps) {
   const analysis = runAmicusAnalysis(application);
 
   /*
-    Reports are also loaded from MongoDB.
+    Reports are loaded from MongoDB.
     Existing generated reports will appear under the Gemini buttons.
   */
   const reports = await getReportsByApplicationIdFromDb(application.id);
@@ -84,12 +86,8 @@ export default async function ApplicationDetailPage({ params }: PageProps) {
               </p>
             </div>
 
-            <button
-              type="button"
-              className="rounded-xl bg-[#0B2341] px-6 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#071A2F]"
-            >
-              Run Amicus Analysis
-            </button>
+            {/* Working agent actions */}
+            <AgentActionButtons applicationId={application.id} />
           </div>
 
           <div className="mt-8 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
@@ -199,6 +197,11 @@ export default async function ApplicationDetailPage({ params }: PageProps) {
               avoidAction={analysis.rescuePlan.avoidAction}
               recoveryProbability={analysis.rescuePlan.recoveryProbability}
             />
+          </div>
+
+          {/* Judge-facing agent workflow timeline */}
+          <div className="mt-6">
+            <AgentActivityTimeline />
           </div>
         </section>
       </main>
@@ -505,7 +508,6 @@ function ReportPanel({
       <SectionTitle title="Report Center" />
 
       <div className="mt-6 space-y-4">
-        {/* Gemini-powered report generation buttons */}
         <GeminiReportButton
           applicationId={applicationId}
           kind="bank_memo"
@@ -524,7 +526,6 @@ function ReportPanel({
           label="Generate Rescue Report"
         />
 
-        {/* Existing reports already saved in MongoDB */}
         <div className="border-t border-[#E5EAF0] pt-4">
           <p className="mb-3 text-xs font-bold uppercase tracking-wide text-[#667085]">
             Existing Reports
@@ -638,6 +639,10 @@ function RescuePanel({
           <p className="mt-1 text-2xl font-bold text-[#0E9F9A]">
             {recoveryProbability}%
           </p>
+
+          <span className="mt-5 inline-flex rounded-xl border border-[#C9961A] bg-white px-5 py-3 text-sm font-bold text-[#C9961A]">
+            Rescue workflow ready
+          </span>
         </div>
       </div>
     </div>
