@@ -86,8 +86,27 @@ export default async function ApplicationDetailPage({ params }: PageProps) {
               </p>
             </div>
 
-            {/* Working agent actions */}
             <AgentActionButtons applicationId={application.id} />
+          </div>
+
+          {/* Judge/demo guidance note */}
+          <div className="mt-6 rounded-2xl border border-[#E5EAF0] bg-white p-5 shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <p className="text-sm font-bold text-[#0B2341]">
+                  Judge Demo Path
+                </p>
+
+                <p className="mt-1 text-sm leading-6 text-[#667085]">
+                  1. Run Amicus Analysis → 2. Generate Gemini Bank Memo → 3.
+                  Download PDF → 4. Create Rescue Plan.
+                </p>
+              </div>
+
+              <span className="rounded-full bg-[#E8F7F5] px-4 py-2 text-xs font-bold text-[#0E9F9A]">
+                Agent Workflow Ready
+              </span>
+            </div>
           </div>
 
           <div className="mt-8 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
@@ -199,7 +218,6 @@ export default async function ApplicationDetailPage({ params }: PageProps) {
             />
           </div>
 
-          {/* Judge-facing agent workflow timeline */}
           <div className="mt-6">
             <AgentActivityTimeline />
           </div>
@@ -648,6 +666,5 @@ function RescuePanel({
     </div>
   );
 }
-
 
 
