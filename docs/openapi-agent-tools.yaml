@@ -1,0 +1,74 @@
+openapi: 3.0.3
+info:
+  title: YOUSUN Amicus Agent Tools API
+  version: 1.0.0
+  description: API tools for the YOUSUN Amicus Loan Review Agent.
+servers:
+  - url: https://YOUR_DEPLOYED_URL
+paths:
+  /api/agent/loan-review:
+    post:
+      operationId: runLoanReviewAgent
+      summary: Run Amicus loan review workflow
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - applicationId
+              properties:
+                applicationId:
+                  type: string
+                  example: APP-005
+      responses:
+        "200":
+          description: Loan review agent workflow result
+  /api/agent/rescue-plan:
+    post:
+      operationId: createRescuePlan
+      summary: Create rescue-before-default plan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - applicationId
+              properties:
+                applicationId:
+                  type: string
+                  example: APP-005
+      responses:
+        "200":
+          description: Rescue plan result
+  /api/agent/gemini-report:
+    post:
+      operationId: generateGeminiReport
+      summary: Generate Gemini-powered report
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - applicationId
+                - kind
+              properties:
+                applicationId:
+                  type: string
+                  example: APP-005
+                kind:
+                  type: string
+                  enum:
+                    - bank_memo
+                    - customer_summary
+                    - rescue_report
+      responses:
+        "200":
+          description: Generated report
+
+          
