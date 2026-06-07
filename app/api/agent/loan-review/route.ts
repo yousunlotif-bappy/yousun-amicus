@@ -1,65 +1,95 @@
 import { NextResponse } from "next/server";
 
-import { runLoanReviewAgentTool } from "@/lib/agent-tools";
+import { runAmicusAnalysis } from "@/lib/agent-calculations";
+import { getApplicationByIdFromDb } from "@/lib/db-applications";
+import { getDb } from "@/lib/mongodb";
+import { generateAllReports } from "@/lib/report-generator";
 
-/*
-  POST /api/agent/loan-review
+export const dynamic = "force-dynamic";
+export const maxDuration = 30;
 
-  This endpoint runs the main YOUSUN Amicus loan review workflow.
-
-  Expected request body:
-  {
-    "applicationId": "APP-001"
-  }
-
-  Workflow:
-  1. Fetch loan application
-  2. Build Financial Twin
-  3. Run Future Mirror scenarios
-  4. Recommend safe loan amount
-  5. Generate Dynamic EMI plan
-  6. Prepare reports
-  7. Save results to MongoDB
-*/
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const applicationId = body?.applicationId as string | undefined;
+    const applicationId = body.applicationId;
 
-    /*
-      applicationId is required because the agent needs to know
-      which borrower/application it should review.
-    */
     if (!applicationId) {
       return NextResponse.json(
         {
           success: false,
-          message: "applicationId is required.",
+          message: "applicationId is required",
         },
         { status: 400 }
       );
     }
 
-    /*
-      Run the internal loan review agent tool.
-      The tool handles analysis generation and MongoDB save/update.
-    */
-    const result = await runLoanReviewAgentTool(applicationId);
+    const application = await getApplicationByIdFromDb(applicationId);
 
-    if (!result.success) {
+    if (!application) {
       return NextResponse.json(
         {
-          ...result,
-          message: result.message || "Loan review agent could not complete.",
+          success: false,
+          message: "Application not found",
         },
         { status: 404 }
       );
     }
 
+    const analysis = runAmicusAnalysis(application);
+    const reports = generateAllReports(application, analysis);
+
+    let databaseSaved = false;
+
+    try {
+      const db = await getDb();
+
+      await db.collection("agent_analyses").updateOne(
+        { applicationId },
+        {
+          $set: {
+            applicationId,
+            analysis,
+            updatedAt: new Date().toISOString(),
+            generatedBy: "YOUSUN Amicus Agent",
+          },
+        },
+        { upsert: true }
+      );
+
+      if (reports.length > 0) {
+        await db.collection("reports").bulkWrite(
+          reports.map((report) => ({
+            updateOne: {
+              filter: { id: report.id },
+              update: {
+                $set: {
+                  ...report,
+                  updatedAt: new Date().toISOString(),
+                  generatedBy: "YOUSUN Amicus Agent",
+                },
+              },
+              upsert: true,
+            },
+          }))
+        );
+      }
+
+      databaseSaved = true;
+    } catch (dbError) {
+      console.error("Loan review database save failed:", dbError);
+    }
+
     return NextResponse.json({
-      ...result,
+      tool: "runLoanReviewAgent",
+      success: true,
+      databaseSaved,
       message:
         "YOUSUN Amicus completed the loan review workflow: Financial Twin, Future Mirror, safe loan recommendation, dynamic EMI, and reports.",
+      data: {
+        application,
+        analysis,
+        reports,
+      },
     });
   } catch (error) {
     console.error("Agent workflow failed:", error);
@@ -67,8 +97,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         success: false,
-        message: "Agent workflow failed.",
-        error: error instanceof Error ? error.message : "Unknown server error",
+        message: "Agent workflow failed",
       },
       { status: 500 }
     );
