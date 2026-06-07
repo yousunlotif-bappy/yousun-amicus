@@ -1,16 +1,19 @@
 openapi: 3.0.3
+
 info:
   title: YOUSUN Amicus Agent Tools API
   version: 1.0.0
   description: API tools for the YOUSUN Amicus Loan Review Agent.
+
 servers:
-  servers:
   - url: https://yousun-amicus.vercel.app
+
 paths:
   /api/agent/loan-review:
     post:
       operationId: runLoanReviewAgent
-      summary: Run Amicus loan review workflow
+      summary: Run the full YOUSUN Amicus loan review workflow.
+      description: Runs Financial Twin, Future Mirror, safe loan recommendation, dynamic EMI planning, and report preparation for a loan application.
       requestBody:
         required: true
         content:
@@ -22,14 +25,20 @@ paths:
               properties:
                 applicationId:
                   type: string
-                  example: APP-005
+                  example: APP-001
       responses:
         "200":
-          description: Loan review agent workflow result
+          description: Loan review workflow completed.
+          content:
+            application/json:
+              schema:
+                type: object
+
   /api/agent/rescue-plan:
     post:
       operationId: createRescuePlan
-      summary: Create rescue-before-default plan
+      summary: Create a rescue-before-default plan.
+      description: Creates an early intervention plan for a borrower before the account reaches default.
       requestBody:
         required: true
         content:
@@ -41,14 +50,20 @@ paths:
               properties:
                 applicationId:
                   type: string
-                  example: APP-005
+                  example: APP-001
       responses:
         "200":
-          description: Rescue plan result
+          description: Rescue plan generated.
+          content:
+            application/json:
+              schema:
+                type: object
+
   /api/agent/gemini-report:
     post:
       operationId: generateGeminiReport
-      summary: Generate Gemini-powered report
+      summary: Generate a Gemini-powered report.
+      description: Generates a Gemini-powered bank memo, customer summary, or rescue-before-default report.
       requestBody:
         required: true
         content:
@@ -61,14 +76,18 @@ paths:
               properties:
                 applicationId:
                   type: string
-                  example: APP-005
+                  example: APP-001
                 kind:
                   type: string
                   enum:
                     - bank_memo
                     - customer_summary
                     - rescue_report
+                  example: bank_memo
       responses:
         "200":
-          description: Generated report
-
+          description: Gemini-powered report generated.
+          content:
+            application/json:
+              schema:
+                type: object
